@@ -146,8 +146,57 @@ static esp_err_t httpd_request_handler(httpd_req_t* req) {
     httpd_queue_work(req->handle, h, resp_arg);
     return ESP_OK;
 }
-static bool httpd_match(const char* str1, const char* str2, size_t length) {
-    return true;
+
+static esp_err_t httpd_socket_handler(httpd_req_t* req) {
+    httpd_ws_frame_t ws_pkt;
+    uint8_t buf[5];
+    memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
+    ws_pkt.type = HTTPD_WS_TYPE_BINARY;
+    uint8_t* data = nullptr;
+    esp_err_t ret = httpd_ws_recv_frame(req, &ws_pkt, 0);
+    if (ret != ESP_OK) {
+        printf("httpd_ws_recv_frame failed to get frame len with %d", ret);
+        return ret;
+    }
+    if (ws_pkt.len>=1) {
+        // this SUCKS but we have no choice. This API is grrrr
+        ws_pkt.payload = (uint8_t*)malloc(ws_pkt.len);
+        if(ws_pkt.payload==nullptr) {
+            return ESP_ERR_NO_MEM;
+        }
+        ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
+        if (ret != ESP_OK) {
+            printf("httpd_ws_recv_frame failed with %d", ret);
+            return ret;
+        }
+        // we don't actually use it
+        free(ws_pkt.payload);
+    } else {
+        puts("httpd_ws: no data recieved");
+        return ESP_OK;
+    }
+    // pack the alarm values into the buffer
+    uint32_t accum=0;
+    bool done = false;
+    for(int i = alarm_count-1;i>=0;--i) {
+        accum<<=1;
+        accum|=alarm_values[i];
+    }
+
+    buf[0]=alarm_count;
+    accum = __bswap32(accum);
+    memcpy(buf+1,&accum,sizeof(accum));
+    ws_pkt.payload = buf;
+    ws_pkt.len = sizeof(buf);
+    ws_pkt.fragmented = false;
+    ws_pkt.final = true;
+    ws_pkt.type = HTTPD_WS_TYPE_BINARY;
+    ret = httpd_ws_send_frame(req, &ws_pkt);
+    if (ret != ESP_OK) {
+        printf("httpd_ws_send_frame failed with %d", ret);
+    }
+
+    return ret;
 }
 void httpd_init() {
     httpd_ui_sync = xSemaphoreCreateMutex();
@@ -155,10 +204,9 @@ void httpd_init() {
         ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
     }
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = HTTPD_RESPONSE_HANDLER_COUNT;
+    config.max_uri_handlers = HTTPD_RESPONSE_HANDLER_COUNT+1;
     config.server_port = 80;
     config.max_open_sockets = (CONFIG_LWIP_MAX_SOCKETS - 3);
-    config.uri_match_fn = httpd_match;
     ESP_ERROR_CHECK(httpd_start(&httpd_handle, &config));
     httpd_uri_t handler = {
         .uri = "/",
@@ -166,6 +214,15 @@ void httpd_init() {
         .handler = httpd_request_handler,
         .user_ctx = NULL
     };
+    for(int i = 0;i<HTTPD_RESPONSE_HANDLER_COUNT;++i) {
+        handler.uri = httpd_response_handlers[i].path_encoded;
+        ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_handle, &handler));
+    }
+    handler.uri = "/socket";
+    handler.is_websocket = true;
+    handler.method = HTTP_GET;
+    handler.supported_subprotocol = nullptr;
+    handler.handler = httpd_socket_handler;
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_handle, &handler));
 }
 void httpd_end() {
@@ -176,4 +233,5 @@ void httpd_end() {
     httpd_handle = nullptr;
     vSemaphoreDelete(httpd_ui_sync);
     httpd_ui_sync = nullptr;
+    
 }

@@ -3,7 +3,7 @@
 #include "freertos/semphr.h"
 #include "alarm_common.hpp"
 #include "serial.hpp"
-
+static_assert(alarm_count>0 && alarm_count<33,"Alarm count must be 1-32");
 bool alarm_values[alarm_count];
 void* alarm_sync = nullptr;
 

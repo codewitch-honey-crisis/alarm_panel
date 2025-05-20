@@ -1,6 +1,6 @@
 import { useEffect,Suspense } from "react";
 import './App.css'
-import { resetSwitches,readSwitches,writeSwitches } from './default.js';
+import { connectSwitches, setSwitches, resetSwitches } from './default.js';
 const fetchData = () => {
   let data;
   const promise = fetch("./api/")
@@ -21,7 +21,7 @@ function Alarm({index}) {
         <>
         <label className="switchLabel">{index+1}</label>
         <label className="switch">
-            <input id={"a"+index} type="checkbox" name="a" value={index} onClick={writeSwitches} />
+            <input id={"a"+index} type="checkbox" name="a" onClick={setSwitches} value={index} />
             <span className="slider round"></span>
         </label>
         <span>&nbsp;&nbsp;</span>
@@ -39,7 +39,7 @@ const Alarms = () => {
 };
 export default function App() {
   useEffect(() => {
-    readSwitches();
+    connectSwitches();
 }, []);
     return (
     <Suspense fallback={<p>waiting for data...</p>}>
@@ -47,7 +47,7 @@ export default function App() {
             <h1>Alarm Control Panel</h1>
             <Alarms />
             <br />
-            <button className="button" onClick={resetSwitches} type="button">Reset All</button>
+            <button className="button" type="button" onClick={resetSwitches}>Reset All</button>
         </>
     </Suspense>
   );
