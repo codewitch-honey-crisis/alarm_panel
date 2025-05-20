@@ -1,16 +1,18 @@
 #include "ui.hpp"
+
 #include <stdio.h>
+
+#include <esp_i2c.hpp>  // i2c initialization
+#include <ft6336.hpp>
+#include <gfx.hpp>
+#include <uix.hpp>
+
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_lcd_panel_ili9342.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_vendor.h"
-#include <esp_i2c.hpp>  // i2c initialization
-#include <ft6336.hpp>
-
-#include <gfx.hpp>
-#include <uix.hpp>
 
 #define SHND ((SemaphoreHandle_t)alarm_sync)
 
@@ -21,9 +23,8 @@
 #define LEFT_ARROW_IMPLEMENTATION
 #include "assets/left_arrow.h"
 #define RIGHT_ARROW_IMPLEMENTATION
-#include "assets/right_arrow.h"
-
 #include "alarm_common.hpp"
+#include "assets/right_arrow.h"
 #include "serial.hpp"
 using namespace gfx;      // graphics
 using namespace uix;      // user interface
@@ -31,7 +32,6 @@ using namespace esp_idf;  // devices
 
 using color_t = color<rgb_pixel<16>>;     // screen color
 using color32_t = color<rgba_pixel<32>>;  // UIX color
-
 
 // fonts load from streams, so wrap our array in one
 static const_buffer_stream font_stream(OpenSans_Regular,
@@ -152,7 +152,6 @@ class arrow_box : public control<ControlSurfaceType> {
 };
 
 static uix::display lcd;
-
 
 // initialize the screen using the esp panel API
 static void lcd_init() {
@@ -534,11 +533,9 @@ void ui_update() {
         xSemaphoreGive(SHND);
     }
 }
-bool ui_web_link() {
-    return web_link.visible();
-}
+bool ui_web_link() { return web_link.visible(); }
 void ui_web_link(const char* addr) {
-    if(addr!=nullptr) {
+    if (addr != nullptr) {
         // move the "Reset all" button to the left
         const int16_t diff = -reset_all.bounds().x1;
         reset_all.bounds(reset_all.bounds().offset(diff, 0));
@@ -555,6 +552,6 @@ void ui_web_link(const char* addr) {
         web_link.visible(false);
         // center the "Reset all" button
         reset_all.bounds(
-        reset_all.bounds().center_horizontal(main_screen.bounds()));    
+            reset_all.bounds().center_horizontal(main_screen.bounds()));
     }
 }

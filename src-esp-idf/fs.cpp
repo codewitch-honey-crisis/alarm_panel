@@ -1,6 +1,7 @@
-#include <stdio.h>
-#include <memory.h>
 #include "fs.hpp"
+
+#include <memory.h>
+#include <stdio.h>
 sdmmc_card_t* fs_sd_card = nullptr;
 bool fs_sd_init() {
     static const char mount_point[] = "/sdcard";

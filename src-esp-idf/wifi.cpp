@@ -1,6 +1,8 @@
-#include <stdio.h>
-#include <memory.h>
 #include "wifi.hpp"
+
+#include <memory.h>
+#include <stdio.h>
+
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 
@@ -97,4 +99,3 @@ WIFI_STATUS wifi_status() {
     }
     return WIFI_WAITING;
 }
-

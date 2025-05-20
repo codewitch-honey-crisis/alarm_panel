@@ -1,5 +1,7 @@
-#include <memory.h>
 #include "spi.hpp"
+
+#include <memory.h>
+
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "ui.hpp"

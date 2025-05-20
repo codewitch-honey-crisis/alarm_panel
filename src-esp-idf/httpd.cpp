@@ -1,10 +1,12 @@
 #include "httpd.hpp"
+
 #include <stddef.h>
 #include <sys/stat.h>
 #include <sys/unistd.h>
+
+#include "alarm_common.hpp"
 #include "esp_http_server.h"
 #include "esp_netif_ip_addr.h"
-#include "alarm_common.hpp"
 #include "ui.hpp"
 static void httpd_send_block(const char* data, size_t len, void* arg);
 static void httpd_send_expr(int expr, void* arg);
@@ -45,7 +47,7 @@ static const char* httpd_crack_query(const char* url_part, char* name,
     }
     size_t i = 0;
     char* name_cur = name;
-    while (*url_part && *url_part != '=' && *url_part!='&') {
+    while (*url_part && *url_part != '=' && *url_part != '&') {
         if (i < 64) {
             *name_cur++ = *url_part;
         }
@@ -53,7 +55,7 @@ static const char* httpd_crack_query(const char* url_part, char* name,
         ++i;
     }
     *name_cur = '\0';
-    if (!*url_part || *url_part=='&') {
+    if (!*url_part || *url_part == '&') {
         *value = '\0';
         return url_part;
     }
@@ -61,8 +63,8 @@ static const char* httpd_crack_query(const char* url_part, char* name,
     i = 0;
     char* value_cur = value;
     while (*url_part && *url_part != '&') {
-        if(i<64) {
-            *value_cur++ = *url_part;    
+        if (i < 64) {
+            *value_cur++ = *url_part;
         }
         ++url_part;
         ++i;
@@ -125,7 +127,7 @@ static void httpd_send_expr(const char* expr, void* arg) {
 static esp_err_t httpd_request_handler(httpd_req_t* req) {
     // match the handler
     int handler_index = httpd_response_handler_match(req->uri);
-    
+
     httpd_async_resp_arg* resp_arg =
         (httpd_async_resp_arg*)malloc(sizeof(httpd_async_resp_arg));
     if (resp_arg == nullptr) {
@@ -138,7 +140,7 @@ static esp_err_t httpd_request_handler(httpd_req_t* req) {
         return ESP_FAIL;
     }
     httpd_work_fn_t h;
-    if(handler_index==-1) {
+    if (handler_index == -1) {
         h = httpd_content_404_clasp;
     } else {
         h = httpd_response_handlers[handler_index].handler;
@@ -158,10 +160,10 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
         printf("httpd_ws_recv_frame failed to get frame len with %d", ret);
         return ret;
     }
-    if (ws_pkt.len>=1) {
+    if (ws_pkt.len >= 1) {
         // this SUCKS but we have no choice. This API is grrrr
         ws_pkt.payload = (uint8_t*)malloc(ws_pkt.len);
-        if(ws_pkt.payload==nullptr) {
+        if (ws_pkt.payload == nullptr) {
             return ESP_ERR_NO_MEM;
         }
         ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
@@ -176,16 +178,16 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
         return ESP_OK;
     }
     // pack the alarm values into the buffer
-    uint32_t accum=0;
+    uint32_t accum = 0;
     bool done = false;
-    for(int i = alarm_count-1;i>=0;--i) {
-        accum<<=1;
-        accum|=alarm_values[i];
+    for (int i = alarm_count - 1; i >= 0; --i) {
+        accum <<= 1;
+        accum |= alarm_values[i];
     }
 
-    buf[0]=alarm_count;
+    buf[0] = alarm_count;
     accum = __bswap32(accum);
-    memcpy(buf+1,&accum,sizeof(accum));
+    memcpy(buf + 1, &accum, sizeof(accum));
     ws_pkt.payload = buf;
     ws_pkt.len = sizeof(buf);
     ws_pkt.fragmented = false;
@@ -204,17 +206,15 @@ void httpd_init() {
         ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
     }
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = HTTPD_RESPONSE_HANDLER_COUNT+1;
+    config.max_uri_handlers = HTTPD_RESPONSE_HANDLER_COUNT + 1;
     config.server_port = 80;
     config.max_open_sockets = (CONFIG_LWIP_MAX_SOCKETS - 3);
     ESP_ERROR_CHECK(httpd_start(&httpd_handle, &config));
-    httpd_uri_t handler = {
-        .uri = "/",
-        .method = HTTP_GET,
-        .handler = httpd_request_handler,
-        .user_ctx = NULL
-    };
-    for(int i = 0;i<HTTPD_RESPONSE_HANDLER_COUNT;++i) {
+    httpd_uri_t handler = {.uri = "/",
+                           .method = HTTP_GET,
+                           .handler = httpd_request_handler,
+                           .user_ctx = NULL};
+    for (int i = 0; i < HTTPD_RESPONSE_HANDLER_COUNT; ++i) {
         handler.uri = httpd_response_handlers[i].path_encoded;
         ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_handle, &handler));
     }
@@ -233,5 +233,4 @@ void httpd_end() {
     httpd_handle = nullptr;
     vSemaphoreDelete(httpd_ui_sync);
     httpd_ui_sync = nullptr;
-    
 }

@@ -1,16 +1,18 @@
+#include "alarm_common.hpp"
+
 #include <memory.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
-#include "alarm_common.hpp"
 #include "serial.hpp"
-static_assert(alarm_count>0 && alarm_count<33,"Alarm count must be 1-32");
+static_assert(alarm_count > 0 && alarm_count < 33, "Alarm count must be 1-32");
 bool alarm_values[alarm_count];
 void* alarm_sync = nullptr;
 
 void alarm_init() {
-    memset(alarm_values,0,sizeof(bool)*alarm_count);
+    memset(alarm_values, 0, sizeof(bool) * alarm_count);
     alarm_sync = xSemaphoreCreateMutex();
-    if(alarm_sync==nullptr) {
+    if (alarm_sync == nullptr) {
         ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
     }
 }

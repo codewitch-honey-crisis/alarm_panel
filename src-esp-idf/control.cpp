@@ -2,19 +2,17 @@
 #include <sys/stat.h>
 #include <sys/unistd.h>
 
-#include "esp_http_server.h"
-
-#include "esp_netif_ip_addr.h"
-
-#include "config.h"
 #include "alarm_common.hpp"
-#include "spi.hpp"
-#include "serial.hpp"
-#include "power.hpp"
-#include "wifi.hpp"
+#include "config.h"
+#include "esp_http_server.h"
+#include "esp_netif_ip_addr.h"
 #include "fs.hpp"
-#include "ui.hpp"
 #include "httpd.hpp"
+#include "power.hpp"
+#include "serial.hpp"
+#include "spi.hpp"
+#include "ui.hpp"
+#include "wifi.hpp"
 
 static void loop();
 static void loop_task(void* arg) {
@@ -53,7 +51,7 @@ extern "C" void app_main() {
         printf("Initializing WiFi connection to %s\n", wifi_ssid);
         wifi_init(wifi_ssid, wifi_pass);
     }
-    
+
     TaskHandle_t loop_handle;
     xTaskCreate(loop_task, "loop_task", 4096, nullptr, 10, &loop_handle);
     printf("Free SRAM: %0.2fKB\n", esp_get_free_internal_heap_size() / 1024.f);
@@ -80,7 +78,7 @@ static void loop() {
             // set the QR text to our website
             static char qr_text[256];
             snprintf(qr_text, sizeof(qr_text), "http://" IPSTR,
-                        IP2STR(&wifi_ip));
+                     IP2STR(&wifi_ip));
             puts(qr_text);
             ui_web_link(qr_text);
             printf("Free SRAM: %0.2fKB\n",

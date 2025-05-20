@@ -1,6 +1,8 @@
-#include <stdio.h>
-#include <memory.h>
 #include "serial.hpp"
+
+#include <memory.h>
+#include <stdio.h>
+
 #include "alarm_common.hpp"
 #include "driver/gpio.h"
 #include "driver/uart.h"
