@@ -11,6 +11,7 @@ it demonstrates
 5. Driving a device over serial
 6. Using htcw_gfx and htcw_uix with the ESP LCD Panel API to present a user interface.
 7. Using React content to drive a website from the ESP32 with automatic rebuild
+8. Using a websocket to communicate between the browser and an ESP32
 
 ## Setup
 

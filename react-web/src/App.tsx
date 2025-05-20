@@ -16,12 +16,12 @@ const fetchData = () => {
     };
 };
 const alarmData = fetchData();
-function Alarm({ index }) {
+function Alarm({ index, value }) {
     return (
         <>
             <label className="switchLabel">{index + 1}</label>
             <label className="switch">
-                <input id={"a" + index} type="checkbox" name="a" onClick={setSwitches} value={index} />
+                <input id={"a" + index} type="checkbox" name="a" defaultChecked={value} onClick={setSwitches} value={index} />
                 <span className="slider round"></span>
             </label>
             <span>&nbsp;&nbsp;</span>
@@ -32,7 +32,7 @@ const Alarms = () => {
     const status = alarmData.read();
     const alarms = [];
     for (let i: number = 0; i < status.length; ++i) {
-        alarms.push(<Alarm index={i} />);
+        alarms.push(<Alarm index={i} value={status[i]} />);
     }
     return (<form method="get" action="#">{alarms}</form>)
 
