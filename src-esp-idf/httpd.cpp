@@ -8,6 +8,8 @@
 #include "esp_http_server.h"
 #include "esp_netif_ip_addr.h"
 #include "ui.hpp"
+#define SHND ((SemaphoreHandle_t)alarm_sync)
+
 static void httpd_send_block(const char* data, size_t len, void* arg);
 static void httpd_send_expr(int expr, void* arg);
 static void httpd_send_expr(const char* expr, void* arg);
@@ -17,7 +19,6 @@ static void httpd_send_expr(const char* expr, void* arg);
 #include "httpd_content.h"
 
 static httpd_handle_t httpd_handle = nullptr;
-static SemaphoreHandle_t httpd_ui_sync = nullptr;
 struct httpd_async_resp_arg {
     httpd_handle_t hd;
     int fd;
@@ -97,9 +98,11 @@ static void httpd_parse_url_and_apply_alarms(const char* url) {
         }
     }
     if (has_set) {
+        xSemaphoreTake(SHND,portMAX_DELAY);
         for (size_t i = 0; i < alarm_count; ++i) {
             alarm_enable(i, req_values[i]);
         }
+        xSemaphoreGive(SHND);
         ui_update_switches();
     }
 }
@@ -201,10 +204,6 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
     return ret;
 }
 void httpd_init() {
-    httpd_ui_sync = xSemaphoreCreateMutex();
-    if (httpd_ui_sync == nullptr) {
-        ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
-    }
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.max_uri_handlers = HTTPD_RESPONSE_HANDLER_COUNT + 1;
     config.server_port = 80;
@@ -231,6 +230,4 @@ void httpd_end() {
     }
     ESP_ERROR_CHECK(httpd_stop(httpd_handle));
     httpd_handle = nullptr;
-    vSemaphoreDelete(httpd_ui_sync);
-    httpd_ui_sync = nullptr;
 }
