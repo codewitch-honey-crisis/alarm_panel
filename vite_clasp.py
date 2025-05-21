@@ -5,7 +5,6 @@ IS_WINDOWS = sys.platform.startswith("win")
 IS_LINUX = sys.platform.startswith("linux")
 IS_MAC = sys.platform.startswith("darwin")
 
-env.Execute("npm install vite@6.3.5")
 print("React+TS integration enabled")
 if (IS_WINDOWS):
     env.Execute("build_react.cmd")
