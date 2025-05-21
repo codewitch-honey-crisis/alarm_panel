@@ -9,9 +9,6 @@
 #include "esp_netif_ip_addr.h"
 #include "ui.hpp"
 #define SHND ((SemaphoreHandle_t)alarm_sync)
-#define DHND (httpd_descs_sync)
-static SemaphoreHandle_t httpd_descs_sync;
-static int httpd_descs[CONFIG_LWIP_MAX_SOCKETS];
 static void httpd_send_block(const char* data, size_t len, void* arg);
 static void httpd_send_expr(int expr, void* arg);
 static void httpd_send_expr(const char* expr, void* arg);
@@ -155,6 +152,10 @@ static esp_err_t httpd_request_handler(httpd_req_t* req) {
     httpd_queue_work(req->handle, h, resp_arg);
     return ESP_OK;
 }
+#define DHND (httpd_descs_sync)
+static SemaphoreHandle_t httpd_descs_sync=nullptr;
+static TaskHandle_t httpd_socket_task_handle=nullptr;
+static int httpd_descs[CONFIG_LWIP_MAX_SOCKETS];
 static void httpd_socket_task(void* arg) {
     bool old_values[alarm_count];
     int fds[CONFIG_LWIP_MAX_SOCKETS];
@@ -170,29 +171,28 @@ static void httpd_socket_task(void* arg) {
             xSemaphoreTake(DHND,portMAX_DELAY);
             memcpy(fds,httpd_descs,sizeof(int)*CONFIG_LWIP_MAX_SOCKETS);
             xSemaphoreGive(DHND);
+            // pack the alarm values into the buffer 
+            uint32_t accum = 0;
+            for (int i = alarm_count - 1; i >= 0; --i) {
+                accum <<= 1;
+                accum |= old_values[i];
+            }
+            uint8_t buf[5];
+            buf[0] = alarm_count;
+            accum = __bswap32(accum);
+            memcpy(buf + 1, &accum, sizeof(accum));        
+            httpd_ws_frame_t ws_pkt;
+            memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
+            ws_pkt.type = HTTPD_WS_TYPE_BINARY;
+            ws_pkt.len = sizeof(buf);
+            ws_pkt.payload = buf;
+            ws_pkt.fragmented = false;
+            ws_pkt.final = true;
             for(int i = 0;i<CONFIG_LWIP_MAX_SOCKETS;++i) {
                 int fd = fds[i];
                 if(fd!=-1) {
-                    httpd_ws_frame_t ws_pkt;
-                    uint8_t buf[5];
-                    memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
-                    ws_pkt.type = HTTPD_WS_TYPE_BINARY;
-                    ws_pkt.len = sizeof(buf);
-                    ws_pkt.payload = buf;
-                    ws_pkt.fragmented = false;
-                    ws_pkt.final = true;
-                    // pack the alarm values into the buffer
-                    uint32_t accum = 0;
-                    for (int i = alarm_count - 1; i >= 0; --i) {
-                        accum <<= 1;
-                        accum |= old_values[i];
-                    }
-                    buf[0] = alarm_count;
-                    accum = __bswap32(accum);
-                    memcpy(buf + 1, &accum, sizeof(accum));
                     ret = httpd_ws_send_frame_async(httpd_handle,fd, &ws_pkt);
                     if (ret != ESP_OK) {
-                        //printf("httpd_ws_send_frame_async failed with %d\n", ret);
                         // Client likely disconnected - close the socket
                         puts("websocket disconnected");
                         httpd_sess_trigger_close(httpd_handle, fd);
@@ -206,7 +206,6 @@ static void httpd_socket_task(void* arg) {
         } else {
             xSemaphoreGive(SHND);
         }
-    
     }
 }
 static esp_err_t httpd_socket_handler(httpd_req_t* req) {
@@ -224,6 +223,8 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
         }
         if (ws_pkt.len >= 1) {
             // this SUCKS but we have no choice. This API is grrrr
+            // we don't actually need any of this data.
+            // would be nice if we could pass null into ws_pkt.payload
             ws_pkt.payload = (uint8_t*)malloc(ws_pkt.len);
             if (ws_pkt.payload == nullptr) {
                 return ESP_ERR_NO_MEM;
@@ -269,7 +270,6 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
     ws_pkt.final = true;
     ws_pkt.type = HTTPD_WS_TYPE_BINARY;
     ret = httpd_ws_send_frame(req, &ws_pkt);
-    
     return ret;
 }
 void httpd_init() {
@@ -300,14 +300,24 @@ void httpd_init() {
     if(httpd_descs_sync==nullptr) {
         ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
     }
-    TaskHandle_t th;
-    xTaskCreate(httpd_socket_task,"httpd_socket_task",2048,NULL,10,&th);
+    xTaskCreate(httpd_socket_task,"httpd_socket_task",2048,NULL,10,&httpd_socket_task_handle);
+    if(httpd_socket_task_handle==nullptr) {
+        ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
+    }
 }
 void httpd_end() {
     if (httpd_handle == nullptr) {
         return;
     }
-    vSemaphoreDelete(httpd_descs_sync);
+    if(httpd_socket_task_handle!=nullptr) {
+        vTaskDelete(httpd_socket_task_handle);
+        httpd_socket_task_handle=nullptr;
+    }
     ESP_ERROR_CHECK(httpd_stop(httpd_handle));
+    if(httpd_descs_sync!=nullptr) {
+        vSemaphoreDelete(httpd_descs_sync);
+        httpd_descs_sync=nullptr;
+    }
     httpd_handle = nullptr;
+    
 }
