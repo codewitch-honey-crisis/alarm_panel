@@ -219,11 +219,8 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
     if(req->method != HTTP_GET) {
         ret = httpd_ws_recv_frame(req, &ws_pkt, 0);
         if (ret != ESP_OK) {
-            printf("httpd_ws_recv_frame failed to get frame len with %d", ret);
+            puts("httpd_ws_recv_frame get length failed");
             return ret;
-        }
-        if(ws_pkt.type!=httpd_ws_type_t::HTTPD_WS_TYPE_BINARY) {
-            printf("got weird packet of type: %d\n",(int)ws_pkt.type);
         }
         if (ws_pkt.len >= 1) {
             // this SUCKS but we have no choice. This API is grrrr
@@ -233,7 +230,7 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
             }
             ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
             if (ret != ESP_OK) {
-                printf("httpd_ws_recv_frame failed with %d", ret);
+                puts("httpd_ws_recv_frame failed");
                 return ret;
             }
             // we don't actually use it
@@ -304,7 +301,7 @@ void httpd_init() {
         ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
     }
     TaskHandle_t th;
-    xTaskCreate(httpd_socket_task,"httpd_socket_task",1024,NULL,10,&th);
+    xTaskCreate(httpd_socket_task,"httpd_socket_task",2048,NULL,10,&th);
 }
 void httpd_end() {
     if (httpd_handle == nullptr) {

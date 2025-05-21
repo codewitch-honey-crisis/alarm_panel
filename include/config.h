@@ -27,7 +27,14 @@ static constexpr unsigned long int serial_baud_rate = 115200;
 static constexpr struct {
     uint8_t rx;
     uint8_t tx;
-} control_serial_pins = {32,33};
+} control_serial_pins = 
+#ifdef M5STACK_CORE2
+    {32,33};
+#endif
+#ifdef FREENOVE_DEVKIT
+    {12,13};
+#endif
+
 
 #ifdef ESP_PLATFORM
 // the pins used for serial transmission from the slave

@@ -8,6 +8,8 @@
 // indicates how much of the screen gets updated at once
 // #define LCD_DIVISOR 2 // optional
 // screen connections
+#ifdef M5STACK_CORE2
+#include "esp_lcd_panel_ili9342.h"
 #define LCD_PORT SPI3_HOST
 #define LCD_DC 15
 #define LCD_CS 5
@@ -24,7 +26,18 @@
 #define LCD_BGR 1                     // optional
 #define LCD_BIT_DEPTH 16              // optional
 #define LCD_SPEED (40 * 1000 * 1000)  // optional
+#endif
+#ifdef FREENOVE_DEVKIT
+#define LCD_SPI_MASTER
+#define LCD_PORT SPI3_HOST
+#define LCD_DC 0
+#define LCD_CS 47
+#define LCD_RST -1    // optional
+#define LCD_BL -1     // optional
 
+#define LCD_BIT_DEPTH 16              // optional
+#define LCD_SPEED (80 * 1000 * 1000)  // optional
+#endif
 extern void ui_init();
 extern void ui_update();
 extern void ui_update_switches(bool lock=true);

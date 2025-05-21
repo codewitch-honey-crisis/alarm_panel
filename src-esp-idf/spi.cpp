@@ -30,5 +30,5 @@ void spi_init() {
     buscfg.max_transfer_sz =
         (lcd_transfer_buffer_size > 512 ? lcd_transfer_buffer_size : 512) + 8;
     // Initialize the SPI bus on VSPI (SPI3)
-    spi_bus_initialize(SPI_PORT, &buscfg, SPI_DMA_CH_AUTO);
+    ESP_ERROR_CHECK(spi_bus_initialize(SPI_PORT, &buscfg, SPI_DMA_CH_AUTO));
 }

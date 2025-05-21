@@ -29,7 +29,9 @@ static void loop_task(void* arg) {
 extern "C" void app_main() {
     printf("ESP-IDF version: %d.%d.%d\n", ESP_IDF_VERSION_MAJOR,
            ESP_IDF_VERSION_MINOR, ESP_IDF_VERSION_PATCH);
+#ifdef M5STACK_CORE2
     power_init();  // do this first
+#endif
     spi_init();    // used by the LCD and SD reader
     // initialize the display
     ui_init();
@@ -55,6 +57,9 @@ extern "C" void app_main() {
     TaskHandle_t loop_handle;
     xTaskCreate(loop_task, "loop_task", 4096, nullptr, 10, &loop_handle);
     printf("Free SRAM: %0.2fKB\n", esp_get_free_internal_heap_size() / 1024.f);
+    serial_event evt;
+    // clear any junk from the second serial:
+    while(serial_get_event(&evt));
 }
 static void loop() {
     ui_update();
