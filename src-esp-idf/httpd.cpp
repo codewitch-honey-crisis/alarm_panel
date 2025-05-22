@@ -10,8 +10,6 @@
 #include "ui.hpp"
 #define SHND ((SemaphoreHandle_t)alarm_sync)
 static void httpd_send_block(const char* data, size_t len, void* arg);
-static void httpd_send_expr(int expr, void* arg);
-static void httpd_send_expr(const char* expr, void* arg);
 
 // include the generated react content
 #define HTTPD_CONTENT_IMPLEMENTATION
@@ -112,19 +110,6 @@ static void httpd_send_block(const char* data, size_t len, void* arg) {
     httpd_async_resp_arg* resp_arg = (httpd_async_resp_arg*)arg;
     httpd_socket_send(resp_arg->hd, resp_arg->fd, data, len, 0);
 }
-static void httpd_send_expr(int expr, void* arg) {
-    httpd_async_resp_arg* resp_arg = (httpd_async_resp_arg*)arg;
-    char buf[64];
-    itoa(expr, buf, 10);
-    httpd_send_chunked(resp_arg, buf, strlen(buf));
-}
-static void httpd_send_expr(const char* expr, void* arg) {
-    httpd_async_resp_arg* resp_arg = (httpd_async_resp_arg*)arg;
-    if (!expr || !*expr) {
-        return;
-    }
-    httpd_send_chunked(resp_arg, expr, strlen(expr));
-}
 
 static esp_err_t httpd_request_handler(httpd_req_t* req) {
     // match the handler
@@ -217,7 +202,6 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
     uint8_t buf[5];
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.type = HTTPD_WS_TYPE_BINARY;
-    uint8_t* data = nullptr;
     esp_err_t ret;
     if(req->method != HTTP_GET) {
         ret = httpd_ws_recv_frame(req, &ws_pkt, 0);
