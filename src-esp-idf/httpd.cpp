@@ -105,19 +105,18 @@ static esp_err_t httpd_request_handler(httpd_req_t* req) {
     if (resp_arg == nullptr) {
         return ESP_ERR_NO_MEM;
     }
+    httpd_work_fn_t h;
+    if (handler_index == -1) {
+        h = httpd_content_404_clasp;    
+    } else {
+        h = httpd_response_handlers[handler_index].handler;
+    }
     httpd_parse_url_and_apply_alarms(req->uri);
     resp_arg->hd = req->handle;
     resp_arg->fd = httpd_req_to_sockfd(req);
     if (resp_arg->fd < 0) {
         free(resp_arg);
         return ESP_FAIL;
-    }
-    httpd_work_fn_t h;
-    if (handler_index == -1) {
-        free(resp_arg);
-        return ESP_FAIL; // shouldn't get here
-    } else {
-        h = httpd_response_handlers[handler_index].handler;
     }
     httpd_queue_work(req->handle, h, resp_arg);
     return ESP_OK;
