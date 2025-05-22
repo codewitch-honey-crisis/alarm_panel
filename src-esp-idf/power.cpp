@@ -18,7 +18,7 @@ bool power_ac() {
     return power.ac_in();
 }
 #else
-void power_init() {{
+void power_init() {
     // do nothing
 }
 float power_battery_level() {
