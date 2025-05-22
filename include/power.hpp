@@ -1,4 +1,4 @@
 #pragma once
-#ifdef M5STACK_CORE2
 void power_init();
-#endif
+float power_battery_level();
+bool power_ac();

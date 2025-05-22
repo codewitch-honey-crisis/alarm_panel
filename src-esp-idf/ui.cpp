@@ -212,9 +212,13 @@ void lcd_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
 #define LEFT_ARROW_IMPLEMENTATION
 #include "assets/left_arrow.h"
 #define RIGHT_ARROW_IMPLEMENTATION
-#include "alarm_common.hpp"
 #include "assets/right_arrow.h"
+#define ICONS_IMPLEMENTATION
+#include "assets/icons.hpp"
+
+#include "alarm_common.hpp"
 #include "serial.hpp"
+#include "power.hpp"
 using namespace gfx;      // graphics
 using namespace uix;      // user interface
 using namespace esp_idf;  // devices
@@ -546,12 +550,15 @@ using switch_t = vswitch<surface_t>;
 using label_t = label<surface_t>;
 using qr_t = qrcode<surface_t>;
 using arrow_t = arrow_box<surface_t>;
+using painter_t = painter<surface_t>;
 
 static screen_t main_screen;
 static arrow_t left_button;
 static arrow_t right_button;
 static button_t reset_all;
 static button_t web_link;
+static painter_t battery_icon;
+
 static constexpr const size_t switches_count =
     math::min(alarm_count, (size_t)(LCD_WIDTH / 40) / 2);
 static switch_t switches[switches_count];
@@ -715,6 +722,34 @@ void ui_init() {
         main_screen.register_control(l);
         x += swidth + 2;
     }
+    // set up a custom canvas for displaying our battery icon
+    battery_icon.bounds(
+        (srect16)faBatteryEmpty.dimensions().bounds());
+    battery_icon.on_paint_callback([](surface_t& destination, 
+                                const srect16& clip, 
+                                void* state) {
+        // show in green if it's on ac power.
+        const int pct = power_battery_level();
+        auto px = color_t::white;
+        if(!power_ac() && pct<25) {
+            px=color_t::red;
+        }
+        if(!power_ac()) {
+            puts("BATTERY");
+            // draw an empty battery
+            draw::icon(destination,point16::zero(),faBatteryEmpty,px);
+            // now fill it up
+            if(pct==100) {
+                // if we're at 100% fill the entire thing
+                draw::filled_rectangle(destination,rect16(3,7,22,16),px);
+            } else {
+                // otherwise leave a small border
+                draw::filled_rectangle(destination,rect16(4,9,4+(0.18f*pct),14),px);
+            }
+        }
+    });
+    main_screen.register_control(battery_icon);
+    
     // initialize the QR screen
     qr_screen.dimensions(main_screen.dimensions());
     // initialize the controls
@@ -749,6 +784,11 @@ void ui_update() {
     // update the display and touch device
     if (SHND != nullptr) {
         xSemaphoreTake(SHND, portMAX_DELAY);
+    }
+    static bool ac_in = power_ac();
+    if(power_ac()!=ac_in) {
+        ac_in = power_ac();
+        battery_icon.invalidate();
     }
     lcd.update();
     if (SHND != nullptr) {

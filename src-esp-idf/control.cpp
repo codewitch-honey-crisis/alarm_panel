@@ -31,11 +31,9 @@ extern "C" void app_main() {
            ESP_IDF_VERSION_MINOR, ESP_IDF_VERSION_PATCH);
     printf("Free SRAM: %0.2fKB\n",
                    esp_get_free_internal_heap_size() / 1024.f);
-#ifdef M5STACK_CORE2
     power_init();  // do this first
-#endif
     spi_init();    // used by the LCD and SD reader
-    // initialize the display
+    // initialize the display and user interface
     ui_init();
     alarm_init();
     fs_spiffs_init();
