@@ -83,4 +83,4 @@ The control source code is under `src-esp-idf`
    
    ## Local Web Server
 
-   For quicker testing, there is a win32 C++ project under `./win32_www` which will display the generated web content locally. It does not rerun Vite or Clasp-Tree so currently you must rebuild the parent project when you make changes to the web. At present there is no websocket support.
+   For quicker testing, there is a win32 C++ project under `./win32_www` which will display the generated web content locally. At present there is no websocket support.
