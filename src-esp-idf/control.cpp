@@ -29,6 +29,8 @@ static void loop_task(void* arg) {
 extern "C" void app_main() {
     printf("ESP-IDF version: %d.%d.%d\n", ESP_IDF_VERSION_MAJOR,
            ESP_IDF_VERSION_MINOR, ESP_IDF_VERSION_PATCH);
+    printf("Free SRAM: %0.2fKB\n",
+                   esp_get_free_internal_heap_size() / 1024.f);
 #ifdef M5STACK_CORE2
     power_init();  // do this first
 #endif
@@ -67,7 +69,9 @@ static void loop() {
     if (serial_get_event(&evt)) {
         switch (evt.cmd) {
             case ALARM_THROWN:
+                xSemaphoreTake((SemaphoreHandle_t)alarm_sync,portMAX_DELAY);
                 alarm_enable(evt.arg, true);
+                xSemaphoreGive((SemaphoreHandle_t)alarm_sync);
                 break;
             default:
                 puts("Unknown event received");

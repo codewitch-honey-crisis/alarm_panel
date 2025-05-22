@@ -156,7 +156,7 @@ static esp_err_t httpd_request_handler(httpd_req_t* req) {
 static SemaphoreHandle_t httpd_descs_sync=nullptr;
 static TaskHandle_t httpd_socket_task_handle=nullptr;
 static int httpd_descs[CONFIG_LWIP_MAX_SOCKETS];
-static uint32_t pack_alarm_values(bool* values) {
+static uint32_t httpd_pack_alarm_values(bool* values) {
     // pack the alarm values into the buffer
     uint32_t accum = 0;
     for (int i = alarm_count - 1; i >= 0; --i) {
@@ -180,7 +180,7 @@ static void httpd_socket_task(void* arg) {
             xSemaphoreTake(DHND,portMAX_DELAY);
             memcpy(fds,httpd_descs,sizeof(int)*CONFIG_LWIP_MAX_SOCKETS);
             xSemaphoreGive(DHND);
-            uint32_t vals = pack_alarm_values(old_values);
+            uint32_t vals = httpd_pack_alarm_values(old_values);
             uint8_t buf[5];
             buf[0] = alarm_count;
             vals = __bswap32(vals);
@@ -258,7 +258,7 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
         }
     }
     xSemaphoreTake(SHND,portMAX_DELAY);
-    uint32_t vals = pack_alarm_values(alarm_values);
+    uint32_t vals = httpd_pack_alarm_values(alarm_values);
     buf[0] = alarm_count;
     xSemaphoreGive(SHND);
     vals = __bswap32(vals);
