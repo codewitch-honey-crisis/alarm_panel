@@ -66,7 +66,7 @@ Where the IP is replaced with the local network IP of the Core2
 
 This will set all the fire alarms to off except #1 (zero based index of 0) and #3 (index 2)
 
-The HTTP responses in the ESP-IDF code were generated using Vite and [ClASP](https://github.com/codewitch-honey-crisis/clasp)
+The HTTP responses in the ESP-IDF code were generated using [Vite](https://vite.dev/) and [ClASP](https://github.com/codewitch-honey-crisis/clasp)
 
 ## Project Structure
 
