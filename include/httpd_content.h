@@ -146,7 +146,9 @@ void httpd_content_api_index_clasp(void* resp_arg) {
         "ication/json\r\n\r\n1\r\n[\r\n", 85, resp_arg);
     
     for(size_t i = 0;i<alarm_count;++i) {
+        alarm_lock();
         bool b=alarm_values[i];
+        alarm_unlock();
         if(i==0) {
             if(b) {
                 

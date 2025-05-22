@@ -4,3 +4,5 @@ extern void* alarm_sync;
 extern bool alarm_values[];
 void alarm_init();
 void alarm_enable(size_t alarm, bool on);
+void alarm_lock();
+void alarm_unlock();

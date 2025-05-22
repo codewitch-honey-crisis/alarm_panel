@@ -6,7 +6,7 @@
 using namespace esp_idf;
 void power_init() {
     // for AXP192 power management
-    static m5core2_power power(esp_i2c<I2C_PORT, I2C_SCL, I2C_SDA>::instance);
+    static m5core2_power power(esp_i2c<I2C_PORT, I2C_SDA, I2C_SCL>::instance);
     // draw a little less power
     power.initialize();
     power.lcd_voltage(3.0);

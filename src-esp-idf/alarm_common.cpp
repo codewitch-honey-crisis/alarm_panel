@@ -23,3 +23,9 @@ void alarm_enable(size_t alarm, bool on) {
         serial_send_alarm(alarm);
     }
 }
+void alarm_lock() {
+    xSemaphoreTake((SemaphoreHandle_t)alarm_sync,portMAX_DELAY);
+}
+void alarm_unlock() {
+    xSemaphoreGive((SemaphoreHandle_t)alarm_sync);
+}

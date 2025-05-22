@@ -20,21 +20,6 @@ struct httpd_async_resp_arg {
     httpd_handle_t hd;
     int fd;
 };
-static void httpd_send_chunked(httpd_async_resp_arg* resp_arg,
-                               const char* buffer, size_t buffer_len) {
-    char buf[64];
-    httpd_handle_t hd = resp_arg->hd;
-    int fd = resp_arg->fd;
-    if (buffer && buffer_len) {
-        itoa(buffer_len, buf, 16);
-        strcat(buf, "\r\n");
-        httpd_socket_send(hd, fd, buf, strlen(buf), 0);
-        httpd_socket_send(hd, fd, buffer, buffer_len, 0);
-        httpd_socket_send(hd, fd, "\r\n", 2, 0);
-        return;
-    }
-    httpd_socket_send(hd, fd, "0\r\n\r\n", 5, 0);
-}
 
 static const char* httpd_crack_query(const char* url_part, char* name,
                                      char* value) {

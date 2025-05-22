@@ -69,9 +69,9 @@ static void loop() {
     if (serial_get_event(&evt)) {
         switch (evt.cmd) {
             case ALARM_THROWN:
-                xSemaphoreTake((SemaphoreHandle_t)alarm_sync,portMAX_DELAY);
+                alarm_lock();
                 alarm_enable(evt.arg, true);
-                xSemaphoreGive((SemaphoreHandle_t)alarm_sync);
+                alarm_unlock();
                 break;
             default:
                 puts("Unknown event received");
