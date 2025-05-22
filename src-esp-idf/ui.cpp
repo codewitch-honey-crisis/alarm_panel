@@ -722,20 +722,19 @@ void ui_init() {
         main_screen.register_control(l);
         x += swidth + 2;
     }
-    // set up a custom canvas for displaying our battery icon
+    // set up a custom painter for displaying our battery icon
     battery_icon.bounds(
         (srect16)faBatteryEmpty.dimensions().bounds());
     battery_icon.on_paint_callback([](surface_t& destination, 
                                 const srect16& clip, 
                                 void* state) {
-        // show in green if it's on ac power.
+        // don't show if it's on ac power.
         const int pct = power_battery_level();
         auto px = color_t::white;
         if(!power_ac() && pct<25) {
             px=color_t::red;
         }
         if(!power_ac()) {
-            puts("BATTERY");
             // draw an empty battery
             draw::icon(destination,point16::zero(),faBatteryEmpty,px);
             // now fill it up
