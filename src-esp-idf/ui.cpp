@@ -728,12 +728,12 @@ void ui_init() {
     battery_icon.on_paint_callback([](surface_t& destination, 
                                 const srect16& clip, 
                                 void* state) {
-        // don't show if it's on ac power.
         const int pct = power_battery_level();
         auto px = color_t::white;
         if(!power_ac() && pct<25) {
             px=color_t::red;
         }
+        // don't show if it's on ac power.
         if(!power_ac()) {
             // draw an empty battery
             draw::icon(destination,point16::zero(),faBatteryEmpty,px);
