@@ -3,6 +3,8 @@
 #ifndef HTTPD_CONTENT_H
 #define HTTPD_CONTENT_H
 
+#include <stdint.h>
+#include <stddef.h>
 
 #define HTTPD_RESPONSE_HANDLER_COUNT 7
 typedef struct { const char* path; const char* path_encoded; void (* handler) (void* arg); } httpd_response_handler_t;
