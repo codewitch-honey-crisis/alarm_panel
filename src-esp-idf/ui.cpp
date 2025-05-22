@@ -781,7 +781,7 @@ void ui_init() {
 }
 
 void ui_update() {
-    // update the display and touch device
+    // update the display and battery info
     if (SHND != nullptr) {
         xSemaphoreTake(SHND, portMAX_DELAY);
     }
