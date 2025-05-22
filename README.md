@@ -42,7 +42,7 @@ a JSON example:
 
 `http://192.168.50.14/api`
 
-Where the IP is replaced with the local network IP of the Core2
+Where the IP is replaced with the local network IP of the ESP32
 
 ```json
 {
