@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
-add_executable(win32_www src/main.cpp)
+add_executable(win32_www src/main.cpp src/base64.c src/sha1.c src/ws_server.c)
 
 add_custom_command(
   TARGET win32_www
