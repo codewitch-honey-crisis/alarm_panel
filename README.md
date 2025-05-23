@@ -81,6 +81,8 @@ The control source code is under `src-esp-idf`
    - `./react-web/public` contains static content accessible from the website, and dynamic ClASP SSR content (accessible from the website unless preceded with `.` in the filename)
    - `./react-web/dist` contains the end generated React content (produced by Vite) that will end up being embedded with ClASP-Tree.
    
-   ## Local Web Server
 
-   For quicker testing, there is a win32 C++ project under `./win32_www` which will display the generated web content locally.
+
+## Local Web Server
+
+For quicker testing, there is a win32 C++ project under `./win32_www` which will display the generated web content locally.
