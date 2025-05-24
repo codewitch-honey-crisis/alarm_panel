@@ -12,11 +12,7 @@ export const resetSwitches = () => {
         .catch(error => console.error("Error fetching JSON data:", error));
 }
 const socket = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/socket");
-const requestSwitches = () => {
-    let ab = new ArrayBuffer(1);
-    socket.send(ab);
-}
-export const setSwitches = () => {
+export const setSwitchesJson = () => {
     let url = "./api/";
     url += "?set";
     const cbs = document.getElementsByTagName("input");
@@ -41,6 +37,30 @@ export const setSwitches = () => {
             }
         })
         .catch(error => console.error("Error fetching JSON data:", error));
+}
+export const setSwitches = () => {
+    const values = []
+    for (let i = 0; i < 32; ++i) {
+        const id = "a" + i;
+        const cb = document.getElementById(id);
+        if (cb != undefined) {
+            values.push(cb.checked);
+        } else {
+            break;
+        }
+    }
+    const buf = new ArrayBuffer(5);
+    const view = new DataView(buf,0);
+    view.setUint8(0,values.length);
+    let packed = 0;
+    for(let i = values.length-1;i>=0;--i) {
+        packed <<= 1;
+        if(values[i]) {
+            packed|=1;
+        }
+    }
+    view.setUint32(1,packed,false);
+    socket.send(buf);
 }
 
 export const connectSwitches = () => {

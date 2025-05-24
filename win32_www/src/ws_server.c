@@ -52,7 +52,72 @@ int ws_srv_compute_sec(const char* ws_sec, size_t ws_sec_length, char* out_buffe
     }
     return 0;
 }
-int ws_srv_send_frame(ws_srv_frame_t* frame,int(*socket_send)(void* data,size_t length, void*state), void* socket_send_state) {
+
+typedef struct {
+    int(*socket_recv)(void* out_data,size_t* in_out_data_length, void*state);
+    void* socket_recv_state;
+} ws_srv_recv_context_t;
+static size_t ws_srv_read(ws_srv_recv_context_t* ctx, uint8_t* data, size_t len) {
+    size_t index = 0;
+    long l = (long)len;
+    while(l>0) {
+        size_t size = l;
+        if(0!=ctx->socket_recv(data+index,&size,ctx->socket_recv_state) || size==0) {
+            return 0;
+        }
+        index+=size;
+        l-=size;
+    } 
+    return len;
+}
+int ws_srv_recv_frame(int(*socket_recv)(void* out_data,size_t* in_out_data_length, void*state),void* socket_recv_state,ws_srv_frame_t* out_frame) {
+    if(out_frame==NULL) {
+        return -1;
+    }
+    out_frame->send_payload = NULL;
+    uint8_t data[8];
+    ws_srv_recv_context_t ctx;
+    ctx.socket_recv = socket_recv;
+    ctx.socket_recv_state = socket_recv_state;
+    if(0==ws_srv_read(&ctx,data,2)) {
+        return WS_SRV_RECV_ERROR;
+    }
+    out_frame->final = (data[0]>>7);
+    out_frame->type = (ws_srv_msg_type_t)(data[0]&0x0F);
+    out_frame->masked = !!(data[0]&0x80);
+    out_frame->fragmented = !out_frame->final;
+    uint8_t tmp = data[1]&0x7F;
+    if(tmp<126) {
+        out_frame->len = tmp;
+        
+    } else if(tmp==126) {
+        if(0==ws_srv_read(&ctx,data,2)) {
+            return WS_SRV_RECV_ERROR;
+        }
+        out_frame->len=(((uint16_t)data[0])<<8)|data[1];
+    } else {
+        if(0==ws_srv_read(&ctx,data,8)) {
+            return WS_SRV_RECV_ERROR;
+        }
+        out_frame->len = 
+                (((uint64_t)data[0])<<56)|
+                (((uint64_t)data[1])<<48)|
+                (((uint64_t)data[2])<<40)|
+                (((uint64_t)data[3])<<32)|
+                (((uint64_t)data[4])<<24)|
+                (((uint64_t)data[5])<<16)|
+                (((uint64_t)data[6])<<8)|
+                (((uint64_t)data[7])<<0);
+    }
+    if(out_frame->masked) {
+        if(0==ws_srv_read(&ctx,out_frame->mask_key,4)) {
+            return WS_SRV_RECV_ERROR;
+        }
+    }
+    
+    return 0;
+}
+int ws_srv_send_frame(const ws_srv_frame_t* frame,int(*socket_send)(const void* data,size_t length, void*state), void* socket_send_state) {
     if(frame==NULL||socket_send==NULL) {
         return -1;
     }
@@ -91,7 +156,7 @@ int ws_srv_send_frame(ws_srv_frame_t* frame,int(*socket_send)(void* data,size_t 
     if(0!=socket_send(data,idx_first_rData,socket_send_state)) {
         return -1;
     }
-    if(0!=socket_send(frame->payload,frame->len,socket_send_state)) {
+    if(0!=socket_send(frame->send_payload,frame->len,socket_send_state)) {
         return -1;
     }
     return 0;

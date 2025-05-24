@@ -9,7 +9,7 @@ set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 add_compile_definitions(uix_test PRIVATE _UNICODE UNICODE)
 
-add_executable(win32_www src/main.cpp src/base64.c src/sha1.c src/ws_server.c)
+add_executable(win32_www src/main.cpp src/base64.c src/sha1.c src/ws_server.c src/httpd.c)
 
 add_custom_command(
   TARGET win32_www
@@ -25,7 +25,7 @@ add_custom_command(
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   )
 
-target_link_libraries(win32_www ws2_32)
+target_link_libraries(win32_www ws2_32 kernel32 user32 gdi32)
 target_include_directories(win32_www PUBLIC
     "${PROJECT_SOURCE_DIR}"
     "${PROJECT_BINARY_DIR}"

@@ -134,6 +134,14 @@ static uint32_t httpd_pack_alarm_values(bool* values) {
     }
     return accum;
 }
+static void httpd_unpack_alarm_values(uint32_t data, size_t length, bool* out_values) {
+    if(length<1 || length>32 || out_values==nullptr) {return;}
+    // unpack the alarm values into the buffer
+    for (int i = 0 ; i < length; ++i) {
+        out_values[i]=(data&1);
+        data>>=1;
+    }
+}
 static void httpd_socket_task(void* arg) {
     bool old_values[alarm_count];
     int fds[CONFIG_LWIP_MAX_SOCKETS];
@@ -193,7 +201,29 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
             puts("httpd_ws_recv_frame get length failed");
             return ret;
         }
-        if (ws_pkt.len >= 1) {
+        if(ws_pkt.len==5) {
+            ws_pkt.payload = buf;
+            ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
+            if (ret != ESP_OK) {
+                puts("httpd_ws_recv_frame failed");
+                return ret;
+            }
+            if(buf[0]==alarm_count) {
+                uint32_t data;
+                memcpy(&data,buf+1,sizeof(uint32_t));
+                data = __bswap32(data);
+                bool new_values[alarm_count];
+                httpd_unpack_alarm_values(data,alarm_count,new_values);
+                alarm_lock();
+                for(int i = 0;i<alarm_count;++i) {
+                    alarm_enable(i,new_values[i]);
+                }
+                alarm_unlock();
+                ui_update_switches();
+            } else {
+                puts("alarm count doesn't match");
+            }
+        } else if (ws_pkt.len >= 1) {
             // this SUCKS but we have no choice. This API is grrrr
             // we don't actually need any of this data.
             // would be nice if we could pass null into ws_pkt.payload
