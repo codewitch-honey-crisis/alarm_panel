@@ -1,42 +1,23 @@
-let timerId = null;
-export const resetSwitches = () => {
-    fetch("./api?set")
-        .then(response => response.json())
-        .then(alarms => {
-            for (let i = 0; i < alarms.length; ++i) {
-                const id = "a" + i;
-                const cb = document.getElementById(id);
-                cb.checked = alarms[i];
-            }
-        })
-        .catch(error => console.error("Error fetching JSON data:", error));
-}
 const socket = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/socket");
-export const setSwitchesJson = () => {
-    let url = "./api/";
-    url += "?set";
-    const cbs = document.getElementsByTagName("input");
-    for (let i = 0; i < cbs.length; ++i) {
+
+export const resetSwitches = () => {
+    let count = 0;
+    for (let i = 0; i < 32; ++i) {
         const id = "a" + i;
         const cb = document.getElementById(id);
         if (cb != undefined) {
-            if (cb.checked) {
-                url += ("&a=" + i);
-            }
+            ++count;
+        } else {
+            break;
         }
     }
-    fetch(url)
-        .then(response => response.json())
-        .then(alarms => {
-            for (let i = 0; i < alarms.length; ++i) {
-                const id = "a" + i;
-                const cb = document.getElementById(id);
-                if (cb != undefined) {
-                    cb.checked = alarms[i];
-                }
-            }
-        })
-        .catch(error => console.error("Error fetching JSON data:", error));
+    const buf = new ArrayBuffer(5);
+    const view = new DataView(buf,0);
+    view.setUint8(0,count);
+    let packed = 0;
+    
+    view.setUint32(1,0,false);
+    socket.send(buf);    
 }
 export const setSwitches = () => {
     const values = []
@@ -64,13 +45,11 @@ export const setSwitches = () => {
 }
 
 export const connectSwitches = () => {
-
     socket.binaryType = "arraybuffer";
     // Connection opened
     socket.addEventListener("open", event => {
         console.log("connected");
     });
-
     // Listen for messages
     socket.addEventListener("message", event => {
         let res = [];

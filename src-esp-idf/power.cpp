@@ -1,5 +1,5 @@
-#include "power.hpp"
-#include "i2c.hpp"
+#include "power.h"
+#include "i2c.h"
 #ifdef M5STACK_CORE2
 #include <esp_i2c.hpp>        // i2c initialization
 #include <m5core2_power.hpp>  // AXP192 power management (core2)
@@ -11,20 +11,20 @@ void power_init() {
     power.initialize();
     power.lcd_voltage(3.0);
 }
-float power_battery_level() {
+int power_battery_level() {
     return power.battery_level();
 }
-bool power_ac() {
+int power_ac() {
     return power.ac_in();
 }
 #else
 void power_init() {
     // do nothing
 }
-float power_battery_level() {
-    return 0.f;
+int power_battery_level() {
+    return 0;
 }
-bool power_ac() {
-    return true;
+int power_ac() {
+    return 1;
 }
 #endif

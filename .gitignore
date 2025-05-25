@@ -4,5 +4,5 @@
 .vscode/launch.json
 .vscode/ipch
 data/wifi.txt
-win32_www/.vscode
-win32_www/build
+host_win32/.vscode
+host_win32/build
