@@ -81,7 +81,7 @@ export const connectSwitches = () => {
         socket.addEventListener("close", (event) => { 
             setTimeout(reconnectSwitches,100);
         });
-        // rerequest the data
+        // rerequest the data - we just send one byte to the server and it will give us a response
         const data = new ArrayBuffer(1);
         const view = new DataView(data);
         view.setUint8(0);
