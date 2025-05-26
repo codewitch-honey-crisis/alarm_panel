@@ -84,8 +84,7 @@ static void on_ws_receive(const ws_srv_frame_t* frame, void* arg, void* state) {
         frame.masked = 0;
         frame.type = WS_SRV_TYPE_BINARY;
         httpd_send_ws_frame(&frame,arg);
-    }
-    if (frame->len == 5) {
+    } else if (frame->len == 5) {
         ws_srv_unmask_payload(frame, frame->payload);
         if (frame->payload[0] == alarm_count) {
             uint32_t data;
