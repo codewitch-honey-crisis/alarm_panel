@@ -675,7 +675,7 @@ int httpd_send_ws_frame(const ws_srv_frame_t* frame, void* arg) {
     }
     return -1;
 }
-int httpd_broadcast_ws_frame(const ws_srv_frame_t* frame) {
+int httpd_broadcast_ws_frame(const char* path, const ws_srv_frame_t* frame) {
     if(httpd_sync==NULL||frame==NULL) {
         return -1;
     }
@@ -684,13 +684,15 @@ int httpd_broadcast_ws_frame(const ws_srv_frame_t* frame) {
     httpd_sock_info_t * info = httpd_sock_list;
     while(info!=NULL) {
         if (info->ws_state > 0) {
-            if (0 !=
-                ws_srv_send_frame(
-                    frame,httpd_ws_write,info)) {
-                        info = info->next;
-                        httpd_destroy_sock_info(info->sock);
-                        continue;
-                
+            if(NULL==path || (info->handler!=NULL && 0==strcmp(path,info->handler->path))) {
+                if (0 !=
+                    ws_srv_send_frame(
+                        frame,httpd_ws_write,info)) {
+                            info = info->next;
+                            httpd_destroy_sock_info(info->sock);
+                            continue;
+                    
+                }
             }
         }
         info = info->next;

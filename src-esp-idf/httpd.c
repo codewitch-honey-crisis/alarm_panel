@@ -20,6 +20,7 @@ typedef enum {
     HTYPE_WS
 } httpd_handler_type_t;
 typedef struct {
+    char path_and_query[513];
     httpd_handler_type_t type;
     union {
         // either
@@ -88,6 +89,7 @@ void httpd_send_block(const char* data, size_t len, void* arg) {
 #define DHND (httpd_descs_sync)
 static SemaphoreHandle_t httpd_descs_sync=NULL;
 static int httpd_descs[CONFIG_LWIP_MAX_SOCKETS];
+static const char* httpd_paths[CONFIG_LWIP_MAX_SOCKETS];
 
 static esp_err_t httpd_socket_handler(httpd_req_t* req) {
     int ctxi = (int)req->user_ctx;
@@ -117,12 +119,14 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
         ctx->websocket.on_receive(&frame,ctx->websocket.on_receive_state);
         
     } else {
+        strcpy(ctx->path_and_query,req->uri);
         int fd = httpd_req_to_sockfd(req);
         if(fd>-1) {
             xSemaphoreTake(DHND,portMAX_DELAY);
             for(int i = 0;i<CONFIG_LWIP_MAX_SOCKETS;++i) {
                 if(httpd_descs[i]<0) {
                     httpd_descs[i]=fd;
+                    httpd_paths [i]=ctx->path_and_query;
                     break;
                 }
             }
@@ -264,7 +268,7 @@ int httpd_register_websocket(const char* path,void(*on_connect_callback)(const c
     return -1; // not supported
 #endif
 }
-int httpd_broadcast_ws_frame(const ws_srv_frame_t* frame) {
+int httpd_broadcast_ws_frame(const char* path_and_query, const ws_srv_frame_t* frame) {
     if(!httpd_handle) {
         return -1;
     }
@@ -279,14 +283,16 @@ int httpd_broadcast_ws_frame(const ws_srv_frame_t* frame) {
     for(int i = 0;i<CONFIG_LWIP_MAX_SOCKETS;++i) {
         int fd = fds[i];
         if(fd!=-1) {
-            ret = httpd_ws_send_frame_async(httpd_handle,fd, &ws_pkt);
-            if (ret != ESP_OK) {
-                // Client likely disconnected - close the socket
-                httpd_sess_trigger_close(httpd_handle, fd);
-                fds[i] = -1;
-                xSemaphoreTake(DHND,portMAX_DELAY);
-                httpd_descs[i]=-1;
-                xSemaphoreGive(DHND);
+            if(path_and_query==NULL || 0==strcmp(httpd_paths[i],path_and_query)) {
+                ret = httpd_ws_send_frame_async(httpd_handle,fd, &ws_pkt);
+                if (ret != ESP_OK) {
+                    // Client likely disconnected - close the socket
+                    httpd_sess_trigger_close(httpd_handle, fd);
+                    fds[i] = -1;
+                    xSemaphoreTake(DHND,portMAX_DELAY);
+                    httpd_descs[i]=-1;
+                    xSemaphoreGive(DHND);
+                }
             }
         }
     }

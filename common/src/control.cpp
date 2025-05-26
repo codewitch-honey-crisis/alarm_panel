@@ -26,30 +26,7 @@
 static uint32_t swap_endian_32(uint32_t number) {
   return ((number & 0xFF) << 24) | ((number & 0xFF00) << 8) | ((number & 0xFF0000) >> 8) | (number >> 24);
 }
-static void on_ws_connect(const char* path_and_query, void* state) {
-}
-static void on_ws_receive(const ws_srv_frame_t* frame, void* state) {
-    if (frame->len == 5) {
-        ws_srv_unmask_payload(frame, frame->payload);
-        if (frame->payload[0] == alarm_count) {
-            uint32_t data;
-            memcpy(&data, frame->payload + 1, sizeof(uint32_t));
-            data = swap_endian_32(data);
-            char new_values[alarm_count];
-            alarm_unpack_values(data, alarm_count, new_values);
-            alarm_lock();
-            for (int i = 0; i < alarm_count; ++i) {
-                alarm_enable(i, new_values[i]);
-            }
-            alarm_unlock();
-            ui_update_switches(true);
-        } else {
-            puts("alarm count doesn't match");
-        }
-    } else {
-        puts("Unknown data received");
-    }
-}
+
 static void parse_url_and_apply(const char* url) {
     const char* query = strchr(url, '?');
     bool has_set = false;
@@ -85,11 +62,49 @@ static void parse_url_and_apply(const char* url) {
     }
 }
 
+static void on_ws_connect(const char* path_and_query, void* state) {
+    puts("Websocket connected");
+}
+static void on_ws_receive(const ws_srv_frame_t* frame, void* state) {
+    if (frame->len == 5) {
+        ws_srv_unmask_payload(frame, frame->payload);
+        if (frame->payload[0] == alarm_count) {
+            uint32_t data;
+            memcpy(&data, frame->payload + 1, sizeof(uint32_t));
+            data = swap_endian_32(data);
+            char new_values[alarm_count];
+            alarm_unpack_values(data, alarm_count, new_values);
+            alarm_lock();
+            for (int i = 0; i < alarm_count; ++i) {
+                alarm_enable(i, new_values[i]);
+            }
+            alarm_unlock();
+            ui_update_switches(true);
+        } else {
+            puts("alarm count doesn't match");
+        }
+    } else {
+        puts("Unknown data received");
+    }
+}
+
 static void on_request(const char* method, const char* path_and_query, void* arg, void* state) {
     typedef void (*handler_fn_t)(void*);
-    handler_fn_t h = (handler_fn_t)state;
+    handler_fn_t resp_handler = (handler_fn_t)state;
     parse_url_and_apply(path_and_query);
-    h(arg);
+    resp_handler(arg);
+}
+
+static void register_handlers() {
+    for (size_t i = 0; i < HTTPD_RESPONSE_HANDLER_COUNT; ++i) {
+        if (0 != httpd_register_handler(httpd_response_handlers[i].path_encoded, on_request, (void*)httpd_response_handlers[i].handler)) {
+            puts("Error registering handler");
+            return;
+        }
+    }
+    if (0 != httpd_register_websocket("/socket", on_ws_connect, nullptr, on_ws_receive, nullptr)) {
+        puts("Error registering websocket");
+    }
 }
 
 static void alarms_changed_socket_task(void* arg) {
@@ -114,24 +129,14 @@ static void alarms_changed_socket_task(void* arg) {
             frame.payload = buf;
             frame.masked = 0;
             frame.type = WS_SRV_TYPE_BINARY;
-            httpd_broadcast_ws_frame(&frame);
+            httpd_broadcast_ws_frame("/socket",&frame);
         } else {
             alarm_unlock();
         }
         task_delay(0);
     }
 }
-static void register_handlers() {
-    for (size_t i = 0; i < HTTPD_RESPONSE_HANDLER_COUNT; ++i) {
-        if (0 != httpd_register_handler(httpd_response_handlers[i].path_encoded, on_request, (void*)httpd_response_handlers[i].handler)) {
-            puts("Error registering handler");
-            return;
-        }
-    }
-    if (0 != httpd_register_websocket("/socket", on_ws_connect, nullptr, on_ws_receive, nullptr)) {
-        puts("Error registering websocket");
-    }
-}
+
 void loop() {
     ui_update();
     alarm_lock();
