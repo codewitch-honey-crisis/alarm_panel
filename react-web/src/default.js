@@ -45,6 +45,7 @@ export const setSwitches = () => {
 }
 const reconnectSwitches = () => {
     socket = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/socket");
+    connectSwitches();
 }
 export const connectSwitches = () => {
     socket.binaryType = "arraybuffer";
