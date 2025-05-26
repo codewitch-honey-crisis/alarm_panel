@@ -24,7 +24,7 @@ function Alarm({ index, value }) {
                 <input id={"a" + index} type="checkbox" name="a" defaultChecked={value} onClick={setSwitches} value={index} />
                 <span className="slider round"></span>
             </label>
-            <span>&nbsp;&nbsp;</span>
+            <span>  </span>
         </>
     )
 }

@@ -2,7 +2,6 @@
 #define SERIAL_H
 #include <stdint.h>
 #include <stddef.h>
-#include "config.h"
 #ifdef M5STACK_CORE2
 #define SERIAL_RX 32
 #define SERIAL_TX 33
@@ -11,15 +10,24 @@
 #define SERIAL_RX 12
 #define SERIAL_TX 13
 #endif
+/// @brief A serial event
 typedef struct {
+    /// @brief The command
     uint8_t cmd;
+    /// @brief The command argument
     uint8_t arg;
 } serial_event_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-void serial_init();
+/// @brief Initialize the serial port
+void serial_init(void);
+/// @brief Get an event
+/// @param out_event The event
+/// @return zero if data was retrieved, otherwise non-zero
 int serial_get_event(serial_event_t* out_event);
+/// @brief Send an alarm to the serial port
+/// @param i The index of the alarm to throw
 void serial_send_alarm(size_t i);
 #ifdef __cplusplus
 }

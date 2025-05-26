@@ -15,7 +15,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void spi_init();
+/// @brief Initializes the SPI bus
+void spi_init(void);
 #ifdef __cplusplus
 }
 #endif

@@ -1,4 +1,4 @@
-const socket = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/socket");
+let socket = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/socket");
 
 export const resetSwitches = () => {
     let count = 0;
@@ -43,13 +43,19 @@ export const setSwitches = () => {
     view.setUint32(1,packed,false);
     socket.send(buf);
 }
-
+const reconnectSwitches = () => {
+    socket = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/socket");
+    connectSwitches();
+}
 export const connectSwitches = () => {
     socket.binaryType = "arraybuffer";
     // Connection opened
     socket.addEventListener("open", event => {
         console.log("connected");
     });
+    socket.addEventListener("close", (event) => { 
+        setTimeout(reconnectSwitches,100);
+    })
     // Listen for messages
     socket.addEventListener("message", event => {
         let res = [];

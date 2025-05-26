@@ -41,8 +41,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void display_init();
-void display_update();
+/// @brief Initialize the display
+void display_init(void);
+/// @brief Update the display 
+void display_update(void);
+/// @brief switch the current screen
+/// @param screen a pointer to a uix::screen_base
 void display_screen(void* screen);
 #ifdef __cplusplus
 }
