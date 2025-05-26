@@ -366,6 +366,7 @@ static void httpd_ws_control_message(const ws_srv_frame_t* frame, httpd_sock_inf
             newframe.final = 1;
             newframe.fragmented = 0;
             newframe.len = frame->len;
+            ws_srv_unmask_payload(frame,data);
             newframe.payload = data;
             newframe.masked = 0;
             newframe.type = WS_SRV_TYPE_PONG;
