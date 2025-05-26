@@ -76,7 +76,7 @@ For quicker testing, there is a win32 C++ project under `./host_win32` which wil
 
 The default platform io folders house shared code under `./include`, as well as the Arduino code for the slaves under `./src`
 
-The control source code is under `src-esp-idf`
+The implementation for the ESP-IDF end of the source code is under `src-esp-idf`, but this simply supports the application logic which resides under `./common/src/control.cpp`
 
 - `./boards` contains PIO support for the freenove devkit
 - `./build_tools` contains ClASP-Tree which is necessary to embed the generated web content into the firmware source code `./include/httpd_content.h`
