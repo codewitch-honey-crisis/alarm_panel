@@ -657,9 +657,6 @@ int httpd_init(uint16_t port, size_t max_handlers) {
     if (httpd_sync != NULL) {
         return 0;
     }
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) == SOCKET_ERROR)
-        httpd_error_die("WSAStartup()");
 
     for (int i = 0; i < 256; i++) {
         enc_rfc3986[i] =
@@ -682,7 +679,6 @@ int httpd_init(uint16_t port, size_t max_handlers) {
     if (httpd_wnd == NULL) {
         CloseHandle(httpd_sync);
         httpd_sync = NULL;
-        WSACleanup();
         return -1;
     }
     SOCKET msg_sock;
@@ -697,7 +693,6 @@ int httpd_init(uint16_t port, size_t max_handlers) {
         httpd_wnd = NULL;
         CloseHandle(httpd_sync);
         httpd_sync = NULL;
-        WSACleanup();
         return -1;
     }
 
@@ -709,7 +704,6 @@ int httpd_init(uint16_t port, size_t max_handlers) {
         httpd_wnd = NULL;
         CloseHandle(httpd_sync);
         httpd_sync = NULL;
-        WSACleanup();
         return -1;
     }
     if (listen(httpd_listen_socket, 10) == SOCKET_ERROR) {
@@ -719,7 +713,6 @@ int httpd_init(uint16_t port, size_t max_handlers) {
         httpd_wnd = NULL;
         CloseHandle(httpd_sync);
         httpd_sync = NULL;
-        WSACleanup();
         return -1;
     }
     return 0;
@@ -754,7 +747,6 @@ void httpd_end() {
         si = next;
     }
     httpd_sock_list = NULL;
-    WSACleanup();
 }
 int httpd_register_handler(const char* path, void (*on_request_callback)(const char* method, const char* path_and_query, void* arg, void* state), void* on_request_callback_state) {
     httpd_create_handler(path, on_request_callback, on_request_callback_state, NULL, NULL, NULL, NULL);

@@ -68,6 +68,10 @@ This will set all the fire alarms to off except #1 (zero based index of 0) and #
 
 The HTTP responses in the ESP-IDF code were generated using [Vite](https://vite.dev/) and [ClASP](https://github.com/codewitch-honey-crisis/clasp)
 
+## Local Web Server and GUI
+
+For quicker testing, there is a win32 C++ project under `./host_win32` which will display the generated web content locally, as well as run the main application logic and user interface.
+
 ## Project Structure
 
 The default platform io folders house shared code under `./include`, as well as the Arduino code for the slaves under `./src`
@@ -76,6 +80,8 @@ The control source code is under `src-esp-idf`
 
 - `./boards` contains PIO support for the freenove devkit
 - `./build_tools` contains ClASP-Tree which is necessary to embed the generated web content into the firmware source code `./include/httpd_content.h`
+- `./common` contains the code that is common to both the ESP-IDF and Win32, including the main application logic in `./common/src/control.cpp`
+- `./host_win32` is its own project, and hosts the common code under Windows for easier testing and development
 - `./react-web` is where all the web content goes:
    - `./react-web/src` contains React content accessible from the website
    - `./react-web/public` contains static content accessible from the website, and dynamic ClASP SSR content (accessible from the website unless preceded with `.` in the filename)
@@ -83,6 +89,3 @@ The control source code is under `src-esp-idf`
    
 
 
-## Local Web Server
-
-For quicker testing, there is a win32 C++ project under `./win32_www` which will display the generated web content locally.
