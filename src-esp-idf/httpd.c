@@ -32,7 +32,7 @@ typedef struct {
         struct { // websocket
             void(*on_connect)(const char* path_and_query, void*state);
             void* on_connect_state;
-            void(*on_receive)(const ws_srv_frame_t* frame, void* state);
+            void(*on_receive)(const ws_srv_frame_t* frame, void* arg, void* state);
             void* on_receive_state;
         } websocket;
     };
@@ -116,8 +116,8 @@ static esp_err_t httpd_socket_handler(httpd_req_t* req) {
         }
         ws_srv_frame_t frame;
         ws_srv_esp32_to_frame(&ws_pkt,&frame);
-        ctx->websocket.on_receive(&frame,ctx->websocket.on_receive_state);
-        
+        ctx->websocket.on_receive(&frame,(void*)httpd_req_to_sockfd(req),ctx->websocket.on_receive_state);
+        free(ws_pkt.payload);
     } else {
         strcpy(ctx->path_and_query,req->uri);
         int fd = httpd_req_to_sockfd(req);
@@ -236,7 +236,7 @@ int httpd_register_handler(const char* path,void(*on_request_callback)(const cha
     }
     return 0;
 }
-int httpd_register_websocket(const char* path,void(*on_connect_callback)(const char* path_and_query, void*state),void* on_connect_callback_state,void(*on_receive_callback)(const ws_srv_frame_t* frame, void* state), void* on_receive_callback_state) {
+int httpd_register_websocket(const char* path,void(*on_connect_callback)(const char* path_and_query, void*state),void* on_connect_callback_state,void(*on_receive_callback)(const ws_srv_frame_t* frame, void* arg, void* state), void* on_receive_callback_state) {
 #ifdef CONFIG_HTTPD_WS_SUPPORT
     if(!httpd_handle) {
         return -1;

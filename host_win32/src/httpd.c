@@ -42,7 +42,7 @@ typedef struct httpd_handler_entry {
     void* on_request_state;
     void (*on_ws_connect)(const char* path_and_query, void* state);
     void* on_ws_connect_state;
-    void (*on_ws_receive)(const ws_srv_frame_t* frame, void* state);
+    void (*on_ws_receive)(const ws_srv_frame_t* frame, void* arg, void* state);
     void* on_ws_receive_state;
     struct httpd_handler_entry* next;
 } httpd_handler_entry_t;
@@ -166,7 +166,7 @@ static void httpd_create_handler(const char* path, void (*on_request_callback)(c
                                  void* on_request_callback_state,
                                  void (*on_connect_callback)(const char* path_and_querty, void* state),
                                  void* on_connect_callback_state,
-                                 void (*on_receive_callback)(const ws_srv_frame_t* frame, void* state),
+                                 void (*on_receive_callback)(const ws_srv_frame_t* frame, void* arg, void* state),
                                  void* on_receive_callback_state) {
     if (on_connect_callback != NULL && on_request_callback != NULL && on_receive_callback == NULL) {
         return;
@@ -486,7 +486,7 @@ static LRESULT CALLBACK httpd_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam,
                         frame.payload = st.buffer + st.cursor;
                         if (frame.type == WS_SRV_TYPE_BINARY || frame.type == WS_SRV_TYPE_TEXT && frame.final && frame.len > 0) {
                             if (info->handler->on_ws_receive != NULL) {
-                                info->handler->on_ws_receive(&frame, info->handler->on_ws_receive_state);
+                                info->handler->on_ws_receive(&frame, info, info->handler->on_ws_receive_state);
                             }
                         } else {
                             httpd_ws_control_message(&frame, info);
@@ -752,7 +752,7 @@ int httpd_register_handler(const char* path, void (*on_request_callback)(const c
     httpd_create_handler(path, on_request_callback, on_request_callback_state, NULL, NULL, NULL, NULL);
     return 0;
 }
-int httpd_register_websocket(const char* path, void (*on_connect_callback)(const char* path_and_query, void* state), void* on_connect_callback_state, void (*on_receive_callback)(const ws_srv_frame_t* frame, void* state), void* on_receive_callback_state) {
+int httpd_register_websocket(const char* path, void (*on_connect_callback)(const char* path_and_query, void* state), void* on_connect_callback_state, void (*on_receive_callback)(const ws_srv_frame_t* frame, void* arg, void* state), void* on_receive_callback_state) {
     httpd_create_handler(path, NULL, NULL, on_connect_callback, on_connect_callback_state, on_receive_callback, on_receive_callback_state);
     return 0;
 }

@@ -37,7 +37,7 @@ int httpd_register_handler(const char* path,void(*on_request_callback)(const cha
 /// @param on_receive_callback The function called when data is received
 /// @param on_receive_callback_state User defined state to pass to the callback
 /// @return 
-int httpd_register_websocket(const char* path,void(*on_connect_callback)(const char* path_and_query, void*state),void* on_connect_callback_state,void(*on_receive_callback)(const ws_srv_frame_t* frame, void* state), void* on_receive_callback_state);
+int httpd_register_websocket(const char* path,void(*on_connect_callback)(const char* path_and_query, void*state),void* on_connect_callback_state,void(*on_receive_callback)(const ws_srv_frame_t* frame, void* arg, void* state), void* on_receive_callback_state);
 /// @brief Broadcasts data to all connected web sockets
 /// @param path_and_query The path and query string to broadcast to. This must be the same as what was used to connect, or NULL to broadcast to all sockets
 /// @param frame The websocket frame to send

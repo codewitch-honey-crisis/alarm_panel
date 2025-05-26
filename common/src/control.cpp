@@ -65,7 +65,26 @@ static void parse_url_and_apply(const char* url) {
 static void on_ws_connect(const char* path_and_query, void* state) {
     puts("Websocket connected");
 }
-static void on_ws_receive(const ws_srv_frame_t* frame, void* state) {
+static void on_ws_receive(const ws_srv_frame_t* frame, void* arg, void* state) {
+    if(frame->len==1) {
+        char old_values[alarm_count];
+        alarm_lock();
+        memcpy(old_values, alarm_values, sizeof(char) * ALARM_COUNT);
+        alarm_unlock();
+        uint32_t vals = alarm_pack_values(old_values);
+        uint8_t buf[5];
+        buf[0] = alarm_count;
+        vals = swap_endian_32(vals);
+        memcpy(buf + 1, &vals, sizeof(vals));
+        ws_srv_frame_t frame;
+        frame.final = 1;
+        frame.fragmented = 0;
+        frame.len = sizeof(buf);
+        frame.payload = buf;
+        frame.masked = 0;
+        frame.type = WS_SRV_TYPE_BINARY;
+        httpd_send_ws_frame(&frame,arg);
+    }
     if (frame->len == 5) {
         ws_srv_unmask_payload(frame, frame->payload);
         if (frame->payload[0] == alarm_count) {
