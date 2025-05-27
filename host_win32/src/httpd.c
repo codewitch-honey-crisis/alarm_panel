@@ -320,7 +320,8 @@ void httpd_ws_handshake(httpd_context_t* context) {
     static const char* http_upg_response =
         "HTTP/1.1 101 Switching Protocols\r\n"
         "Upgrade: websocket\r\n"
-        "Connection: Upgrade\r\nSec-WebSocket-Accept: ";
+        "Connection: Upgrade\r\n"
+        "Sec-WebSocket-Accept: ";
     static const size_t http_upg_response_len = 97;
     puts("Begin websocket handshake");
     httpd_handler_entry_t* he = ((httpd_sock_info_t*)context->sinfo)->handler;
