@@ -406,42 +406,24 @@ static LRESULT CALLBACK httpd_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam,
                                           LPARAM lParam)
 
 {
-    SOCKET Accept;
-
-    DWORD RecvBytes;
-
-    DWORD SendBytes;
-
-    DWORD Flags;
+    SOCKET accept_sock;
+    DWORD recv_bytes;
+    DWORD flags;
     httpd_sock_info_t* info;
     if (uMsg == WM_SOCKET) {
         if (WSAGETSELECTERROR(lParam)) {
             printf("Socket failed with error %d\n", WSAGETSELECTERROR(lParam));
             httpd_destroy_sock_info(wParam);
-        }
-
-        else {
-            switch (WSAGETSELECTEVENT(lParam))
-
-            {
+        } else {
+            switch (WSAGETSELECTEVENT(lParam)) {
                 case FD_ACCEPT:
-
-                    if ((Accept = accept(wParam, NULL, NULL)) == INVALID_SOCKET)
-
-                    {
+                    if ((accept_sock = accept(wParam, NULL, NULL)) == INVALID_SOCKET) {
                         printf("accept() failed with error %d\n", WSAGetLastError());
-
                         break;
-
                     }
-
-                    else
-
-                        // Create a socket information structure to associate with the socket for processing I/O
-
-                        httpd_create_sock_info(Accept);
-
-                    WSAAsyncSelect(Accept, hwnd, WM_SOCKET, FD_READ | FD_WRITE | FD_CLOSE);
+                    // Create a socket information structure to associate with the socket for processing I/O
+                    httpd_create_sock_info(accept_sock);
+                    WSAAsyncSelect(accept_sock, hwnd, WM_SOCKET, FD_READ | FD_WRITE | FD_CLOSE);
                     break;
                 case FD_READ:
                     info = httpd_find_sock_info(wParam);
@@ -464,7 +446,6 @@ static LRESULT CALLBACK httpd_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam,
                                 puts("Warning: recv_size nonzero");
                             }
                         }
-
                         DWORD cb;
                         DWORD dwFlags = 0;
                         info->wsa.buf = (char*)info->recv_buf;
@@ -504,31 +485,20 @@ static LRESULT CALLBACK httpd_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam,
                         }
                         info->wsa.buf = (char*)(info->recv_buf + info->recv_size);
                         info->wsa.len = info->recv_cap - info->recv_size;
-                        Flags = 0;
+                        flags = 0;
 
-                        if (WSARecv(info->sock,
-                                    &(info->wsa), 1, &RecvBytes,
-
-                                    &Flags, NULL, NULL) == SOCKET_ERROR)
-
-                        {
-                            if (WSAGetLastError() != WSAEWOULDBLOCK)
-
-                            {
+                        if (WSARecv(info->sock, &(info->wsa), 1, &recv_bytes,
+                                    &flags, NULL, NULL) == SOCKET_ERROR) {
+                            if (WSAGetLastError() != WSAEWOULDBLOCK) {
                                 printf("WSARecv() failed with error %d\n",
                                        WSAGetLastError());
-
                                 httpd_destroy_sock_info(wParam);
-
                                 return 0;
                             }
-
                         }
 
-                        else  // No error so update the byte count
-
-                        {
-                            info->recv_size += RecvBytes;
+                        else  { // No error so update the byte count
+                            info->recv_size += recv_bytes;
                         }
                         httpd_context_t* ctx = (httpd_context_t*)malloc(sizeof(httpd_context_t));
                         if (ctx == NULL) {
@@ -564,10 +534,8 @@ static LRESULT CALLBACK httpd_window_proc(HWND hwnd, UINT uMsg, WPARAM wParam,
                     break;
             }
         }
-
         return 0;
     }
-
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
