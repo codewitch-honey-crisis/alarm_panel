@@ -19,7 +19,7 @@ FetchContent_Declare(htcw_uix
 )
 FetchContent_MakeAvailable(htcw_uix)
 
-add_executable(host_win32 WIN32 src/main.cpp src/display.cpp src/base64.c src/sha1.c src/serial.c src/spi.c src/task.c src/power.c src/network.c src/httpd.c ../common/src/alarm.c ../common/src/ws_server.c ../common/src/ui.cpp ../common/src/control.cpp)
+add_executable(host_win32 WIN32 src/main.cpp src/display.cpp src/base64.c src/sha1.c src/serial.c src/spi.c src/task.c src/power.c src/network.c src/i2c.c src/httpd.c ../common/src/alarm.c ../common/src/ws_server.c ../common/src/ui.cpp ../common/src/control.cpp)
 
 add_custom_command(
   TARGET host_win32

@@ -12,6 +12,7 @@
 
 #include "alarm.h"
 #include "config.h"
+#include "i2c.h"
 #include "display.h"
 #include "httpd.h"
 #include "network.h"
@@ -206,6 +207,7 @@ void loop() {
     }
 }
 void run() {
+    i2c_master_init();
     power_init();  // do this first
     spi_init();    // used by the LCD and SD reader
     // initialize the display and user interface

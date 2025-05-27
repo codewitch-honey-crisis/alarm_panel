@@ -1,13 +1,18 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 // screen dimensions
-#define LCD_WIDTH 320
-#define LCD_HEIGHT 240
 // indicates how much of the screen gets updated at once
 // #define LCD_DIVISOR 2 // optional
 // screen connections
+#ifdef LOCAL_PC
+#define LCD_HRES 320
+#define LCD_VRES 240
+#define LCD_BIT_DEPTH 16
+#endif
 #ifdef M5STACK_CORE2
 #include "esp_lcd_panel_ili9342.h"
+#define LCD_HRES 320
+#define LCD_VRES 240
 #define LCD_PORT SPI3_HOST
 #define LCD_DC 15
 #define LCD_CS 5
@@ -26,6 +31,8 @@
 #define LCD_SPEED (40 * 1000 * 1000)  // optional
 #endif
 #ifdef FREENOVE_DEVKIT
+#define LCD_HRES 320
+#define LCD_VRES 240
 #define LCD_SPI_MASTER
 #define LCD_PORT SPI3_HOST
 #define LCD_DC 0
@@ -38,6 +45,37 @@
 #ifdef LOCAL_PC
 #define LCD_BIT_DEPTH 16
 #endif
+
+#ifndef LCD_WIDTH
+#ifdef LCD_SWAP_XY
+#if LCD_SWAP_XY
+#define LCD_WIDTH LCD_VRES
+#define LCD_HEIGHT LCD_HRES
+#else
+#define LCD_WIDTH LCD_HRES
+#define LCD_HEIGHT LCD_VRES
+#endif
+#else
+#define LCD_WIDTH LCD_HRES
+#define LCD_HEIGHT LCD_VRES
+#endif
+#endif
+#ifndef LCD_BIT_DEPTH
+#define LCD_BIT_DEPTH 16
+#endif
+#ifndef LCD_X_ALIGN
+#define LCD_X_ALIGN 1
+#endif
+#ifndef LCD_Y_ALIGN
+#define LCD_Y_ALIGN 1
+#endif
+#ifndef LCD_FRAME_ADAPTER
+#define LCD_FRAME_ADAPTER gfx::bitmap<gfx::rgb_pixel<LCD_BIT_DEPTH>>
+#endif
+#ifndef LCD_DC_BIT_OFFSET
+#define LCD_DC_BIT_OFFSET 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
