@@ -1,6 +1,21 @@
 import { useEffect, Suspense } from "react";
 import './App.css'
-import { switchValues, connectSwitches, setSwitches, resetSwitches } from './default.js';
+import { connectSwitches, setSwitches, resetSwitches } from './default.js';
+const fetchData = () => {
+    let data;
+    const promise = fetch("./api/")
+        .then((response) => response.json())
+        .then((json) => (data = json));
+    return {
+        read() {
+            if (!data) {
+                throw promise;
+            }
+            return data;
+        },
+    };
+};
+const alarmData = fetchData();
 function Alarm({ index, value }) {
     return (
         <>
@@ -14,9 +29,10 @@ function Alarm({ index, value }) {
     )
 }
 const Alarms = () => {
-    const alarms = switchValues;
-    for (let i: number = 0; i < alarms.length; ++i) {
-        alarms.push(<Alarm index={i} value={alarms[i]} />);
+    const status = alarmData.read();
+    const alarms = [];
+    for (let i: number = 0; i < status.length; ++i) {
+        alarms.push(<Alarm index={i} value={status[i]} />);
     }
     return (<form method="get" action="#">{alarms}</form>)
 
