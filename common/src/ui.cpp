@@ -442,11 +442,14 @@ void ui_update() {
     display_update();
     // update the battery info
     static bool ac_in = power_ac();
-    static int bat_pct =0;
     int bat_cmp = power_battery_level();
-    if(power_ac()!=(int)ac_in || bat_pct!=bat_cmp) {
-        bat_pct =  power_battery_level();
+    if(power_ac()!=(int)ac_in) {
         ac_in = power_ac();
+        battery_icon.invalidate();
+    }
+    static int bat_pct =0;
+    if(!ac_in && bat_pct!=bat_cmp) {
+        bat_pct =  power_battery_level();
         battery_icon.invalidate();
     }
     alarm_lock();
