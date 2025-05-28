@@ -122,7 +122,7 @@ static float power_battery_voltage(void) {
     if(ESP_OK!=i2c_master_transmit_receive(power_i2c_handle,&addr,1,buf,2,1000)) {
         return -1;
     }
-    static const float ADCLSB = 1.1f / 1000.f;
+    static const float ADCLSB = 1.1 / 1000.0;
     uint16_t data12 = ((buf[0] << 4) + buf[1]);
     return data12 * ADCLSB;
 }
