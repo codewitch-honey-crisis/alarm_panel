@@ -211,6 +211,7 @@ int power_ac() {
 #else
 int power_init() {
     // do nothing
+    return 0;
 }
 int power_battery_level() {
     return 0;

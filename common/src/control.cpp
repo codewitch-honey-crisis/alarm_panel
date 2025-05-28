@@ -156,7 +156,7 @@ static void alarms_changed_socket_task(void* arg) {
     }
 }
 
-void loop() {
+extern "C" void loop() {
     ui_update();
     alarm_lock();
     alarm_unlock();
@@ -205,7 +205,7 @@ void loop() {
         }
     }
 }
-void run() {
+extern "C" void run() {
     assert(!i2c_master_init());
     assert(!power_init());  // do this first
     spi_init();    // used by the LCD and SD reader

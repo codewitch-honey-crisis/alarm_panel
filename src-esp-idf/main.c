@@ -2,7 +2,7 @@
 #include "freertos/task.h"
 extern void run();
 extern void loop();
-extern "C" void app_main() {
+void app_main() {
     run();
     // loop task
     uint32_t ts = pdTICKS_TO_MS(xTaskGetTickCount());
