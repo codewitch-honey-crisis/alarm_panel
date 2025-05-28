@@ -39,6 +39,7 @@ const Alarms = () => {
 };
 export default function App() {
     useEffect(() => {
+        console.log("connecting");
         connectSwitches();
     }, []);
     return (
