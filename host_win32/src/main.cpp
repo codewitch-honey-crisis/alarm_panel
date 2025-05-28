@@ -18,7 +18,9 @@ extern "C" int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 // Global Variables:
 HINSTANCE hInst;  // current instance
 HANDLE quit_event = NULL;
-extern HWND hWndMain; HWND hWndMain;
+extern HWND hWndMain; 
+HWND hWndMain;
+extern task_mutex_t app_mutex;
 task_mutex_t app_mutex = NULL;
 static HANDLE app_thread = NULL;
 static bool should_quit = false;

@@ -20,10 +20,12 @@
 using namespace gfx;      // graphics
 using namespace uix;      // user interface
 
-using color_t = color<rgb_pixel<16>>;     // screen color
+using color_t = color<rgb_pixel<LCD_BIT_DEPTH>>;     // screen color
 using color32_t = color<rgba_pixel<32>>;  // UIX color
 
 const gfx::const_bitmap<gfx::alpha_pixel<8>> faBatteryEmpty({FABATTERYEMPTY_WIDTH,FABATTERYEMPTY_HEIGHT}, faBatteryEmpty_data);
+
+static uix::display lcd;
 
 // fonts load from streams, so wrap our array in one
 static const_buffer_stream font_stream(OpenSans_Regular,
@@ -33,7 +35,7 @@ static tt_font text_font;
 static const_buffer_stream left_stream(left_arrow, sizeof(left_arrow));
 static const_buffer_stream right_stream(right_arrow, sizeof(right_arrow));
 
-using screen_t = uix::screen<rgb_pixel<LCD_BIT_DEPTH>>;
+using screen_t = uix::screen_ex<LCD_FRAME_ADAPTER,LCD_X_ALIGN,LCD_Y_ALIGN>;
 using surface_t = screen_t::control_surface_type;
 
 template <typename ControlSurfaceType>
@@ -186,7 +188,34 @@ void ui_update_switches(char lock) {
     }
 }
 
-void ui_init() {
+int ui_init() {
+
+#ifdef LCD_DIVISOR
+    static constexpr const size_t lcd_divisor = LCD_DIVISOR;
+#else
+    static constexpr const size_t lcd_divisor = 10;
+#endif
+#ifdef LCD_BIT_DEPTH
+    static constexpr const size_t lcd_pixel_size = (LCD_BIT_DEPTH + 7) / 8;
+#else
+    static constexpr const size_t lcd_pixel_size = 2;
+#endif
+    // the size of our transfer buffer(s)
+    static const constexpr size_t lcd_transfer_buffer_size =
+        LCD_WIDTH * LCD_HEIGHT * lcd_pixel_size / lcd_divisor;
+
+    uint8_t* lcd_transfer_buffer1 =
+        (uint8_t*)malloc(lcd_transfer_buffer_size);
+    uint8_t* lcd_transfer_buffer2 =
+        (uint8_t*)malloc(lcd_transfer_buffer_size);
+    if (lcd_transfer_buffer1 == nullptr || lcd_transfer_buffer2 == nullptr) {
+        puts("Out of memory allocating transfer buffers");
+        return -1;
+    }
+    lcd.buffer_size(lcd_transfer_buffer_size);
+    lcd.buffer1(lcd_transfer_buffer1);
+    lcd.buffer2(lcd_transfer_buffer2);
+
     main_screen.dimensions({LCD_WIDTH, LCD_HEIGHT});
     main_screen.background_color(color_t::black);
 
@@ -259,7 +288,7 @@ void ui_init() {
     web_link.radiuses({5, 5});
     web_link.on_pressed_changed_callback([](bool pressed, void* state) {
         if (!pressed) {
-            display_screen(&qr_screen);
+            ui_screen(&qr_screen);
         }
     });
     web_link.visible(false);
@@ -368,21 +397,58 @@ void ui_init() {
     qr_return.radiuses({5, 5});
     qr_return.on_pressed_changed_callback([](bool pressed, void* state) {
         if (!pressed) {
-            display_screen(&main_screen);
+            ui_screen(&main_screen);
         }
     });
     qr_screen.register_control(qr_return);
-    // set the display to our main screen
-    display_screen(&main_screen);
-}
+    lcd.on_flush_callback(
+        [](const rect16& bounds, const void* bmp, void* state) {
+            int x1 = bounds.x1, y1 = bounds.y1, x2 = bounds.x2 ,
+                y2 = bounds.y2;
+            display_flush(x1, y1, x2,y2, bmp);
+        });                                    
 
+    lcd.on_touch_callback(
+        [](point16* out_locations, size_t* in_out_locations_size, void* state) {
+            // UIX supports multiple touch points.
+            // so does the FT6336 so we potentially have
+            // two values
+            *in_out_locations_size = 0;
+            uint16_t x[2];
+            uint16_t y[2];
+            uint16_t strength[2];
+            size_t count = 2;
+            if(display_touch_read(x, y, strength, &count)) {
+                *in_out_locations_size = count;
+            }
+            if(count>0) {
+                out_locations[0] = point16(x[0], y[0]);
+                ++*in_out_locations_size;
+            }
+            if(count>1) {
+                out_locations[1] = point16(x[1], y[1]);
+                ++*in_out_locations_size;
+            }
+        });
+
+    // set the display to our main screen
+    ui_screen(&main_screen);
+    return 0;
+}
+void display_flush_complete() {
+    lcd.flush_complete();
+}
 void ui_update() {
+    display_update();
     // update the battery info
     static bool ac_in = power_ac();
     if(power_ac()!=(int)ac_in) {
         ac_in = power_ac();
         battery_icon.invalidate();
     }
+    alarm_lock();
+    lcd.update();
+    alarm_unlock();
 }
 int ui_web_link_visible() { return web_link.visible(); }
 void ui_web_link(const char* addr) {
@@ -396,12 +462,17 @@ void ui_web_link(const char* addr) {
     } else {
         // we disconnected for some reason
         // if it's not the main screen, set it to the main screen
-        display_screen(&main_screen);
+        ui_screen(&main_screen);
         
         // hide the QR Link button
         web_link.visible(false);
         // center the "Reset all" button
         reset_all.bounds(
             reset_all.bounds().center_horizontal(main_screen.bounds()));
+    }
+}
+void ui_screen(void* screen) {
+    if(screen!=nullptr) {
+        lcd.active_screen(*(uix::screen_base*)screen);
     }
 }

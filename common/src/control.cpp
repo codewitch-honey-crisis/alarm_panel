@@ -9,15 +9,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <assert.h>
 #include "alarm.h"
 #include "config.h"
-#include "i2c.h"
 #include "display.h"
 #include "httpd.h"
 #include "network.h"
 #include "power.h"
 #include "serial.h"
+#include "i2c.h"
 #include "spi.h"
 #include "task.h"
 #include "ui.h"
@@ -159,7 +159,6 @@ static void alarms_changed_socket_task(void* arg) {
 void loop() {
     ui_update();
     alarm_lock();
-    display_update();
     alarm_unlock();
     serial_event_t evt;
     if (0 == serial_get_event(&evt)) {
@@ -207,14 +206,14 @@ void loop() {
     }
 }
 void run() {
-    i2c_master_init();
-    power_init();  // do this first
+    assert(!i2c_master_init());
+    assert(!power_init());  // do this first
     spi_init();    // used by the LCD and SD reader
     // initialize the display and user interface
-    display_init();
+    assert(!display_init());
     serial_init();
     alarm_init();
-    ui_init();
+    assert(!ui_init());
     net_init();
     task_init(alarms_changed_socket_task, TASK_STACK_DEFAULT, TASK_AFFINITY_ANY, NULL);
     // clear any junk from the second serial:

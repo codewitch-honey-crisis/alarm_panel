@@ -1,5 +1,6 @@
 #include "power.h"
-void power_init() {
+int power_init() {
+    return 0;
 }
 int power_battery_level() {
     return 0;

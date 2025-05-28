@@ -1,14 +1,22 @@
 #include "display.h"
-#include "esp_i2c.hpp"  // i2c initialization
-#include "ft6336.hpp"
-
+#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <memory.h>
+#include <driver/i2c_master.h>
 #include "i2c.h"
 #include "spi.h"
-#include <stdio.h>
 
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_ops.h"
+#include "esp_lcd_panel_vendor.h"
 
+#include "esp_lcd_touch.h"
+#if defined(M5STACK_CORE2) || defined(FREENOVE_DEVKIT)
+#include "esp_lcd_touch_ft5x06.h"
+#endif
 #ifdef LCD_SPI_MASTER
 #include "hal/gpio_ll.h"
 #define DC_C GPIO.out_w1tc = (1 << LCD_DC);
@@ -135,9 +143,8 @@ void lcd_init_impl() {
 #endif
 }
 #else
-#include "esp_lcd_panel_io.h"
-#include "esp_lcd_panel_ops.h"
-#include "esp_lcd_panel_vendor.h"
+static esp_lcd_panel_handle_t lcd_handle = NULL;
+esp_lcd_touch_handle_t touch_handle = NULL;
 #endif
 
 #ifdef FREENOVE_DEVKIT
@@ -203,66 +210,48 @@ void lcd_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
 }
 #endif
 
-#include "gfx.hpp"
-#include "uix.hpp"
-
-
-using namespace uix;
-using namespace uix;
-using namespace esp_idf;
-
-static uix::display lcd;
 
 #ifdef LCD_SPI_MASTER
 static void lcd_on_flush_complete() {
-    lcd.flush_complete();
+    display_flush_complete();
 }
 #endif
+static bool display_flush_cb(esp_lcd_panel_io_handle_t lcd_io, esp_lcd_panel_io_event_data_t* edata, void* user_ctx) {
+    display_flush_complete();
+    return true;
+}
 // initialize the screen 
-void display_init() {
+int display_init() {
+    esp_lcd_panel_io_handle_t io_handle = NULL;
+    esp_lcd_panel_io_spi_config_t io_config;
+    esp_lcd_panel_dev_config_t lcd_config;
+
+    esp_lcd_panel_io_i2c_config_t tio_cfg;
+    esp_lcd_panel_io_handle_t tio_handle;
+    i2c_master_bus_handle_t i2c_handle;
+    esp_lcd_touch_config_t tp_cfg;
+    
     // for the touch panel
 #ifdef M5STACK_CORE2
-    constexpr static const uint16_t touch_hres = LCD_WIDTH;
-    constexpr static const uint16_t touch_vres = LCD_HEIGHT+40;
+    static const uint16_t touch_hres = LCD_HRES;
+    static const uint16_t touch_vres = LCD_VRES+40;
+    static const unsigned int touch_swap_xy = 0;
+    static const unsigned int touch_mirror_x = 0;
+    static const unsigned int touch_mirror_y = 0;
 #endif
 #ifdef FREENOVE_DEVKIT
-    constexpr static const uint16_t touch_hres = LCD_HEIGHT;
-    constexpr static const uint16_t touch_vres = LCD_WIDTH;
+    static const uint16_t touch_hres = LCD_HRES;
+    static const uint16_t touch_vres = LCD_VRES;
+    static const unsigned int touch_swap_xy = 1;
+    static const unsigned int touch_mirror_x = 1;
+    static const unsigned int touch_mirror_y = 0;
 #endif
 
-    using touch_t = ft6336<touch_hres, touch_vres, 16>;
-    static touch_t touch(esp_i2c<I2C_PORT, I2C_SDA, I2C_SCL>::instance);
-
-#ifdef LCD_DIVISOR
-    static constexpr const size_t lcd_divisor = LCD_DIVISOR;
-#else
-    static constexpr const size_t lcd_divisor = 10;
-#endif
-#ifdef LCD_BIT_DEPTH
-    static constexpr const size_t lcd_pixel_size = (LCD_BIT_DEPTH + 7) / 8;
-#else
-    static constexpr const size_t lcd_pixel_size = 2;
-#endif
-    // the size of our transfer buffer(s)
-    static const constexpr size_t lcd_transfer_buffer_size =
-        LCD_WIDTH * LCD_HEIGHT * lcd_pixel_size / lcd_divisor;
-
-    uint8_t* lcd_transfer_buffer1 =
-        (uint8_t*)heap_caps_malloc(lcd_transfer_buffer_size, MALLOC_CAP_DMA);
-    uint8_t* lcd_transfer_buffer2 =
-        (uint8_t*)heap_caps_malloc(lcd_transfer_buffer_size, MALLOC_CAP_DMA);
-    if (lcd_transfer_buffer1 == nullptr || lcd_transfer_buffer2 == nullptr) {
-        puts("Out of memory allocating transfer buffers");
-        while (1) vTaskDelay(5);
-    }
-    lcd.buffer_size(lcd_transfer_buffer_size);
-    lcd.buffer1(lcd_transfer_buffer1);
-    lcd.buffer2(lcd_transfer_buffer2);
 #if defined(LCD_BL) && LCD_BL > 1
 #ifdef LCD_BL_LOW
-    static constexpr const int bl_on = !(LCD_BL_LOW);
+    static const int bl_on = !(LCD_BL_LOW);
 #else
-    static constexpr const int bl_on = 1;
+    static const int bl_on = 1;
 #endif
     gpio_set_direction((gpio_num_t)LCD_BL, GPIO_MODE_OUTPUT);
     gpio_set_level((gpio_num_t)LCD_BL, !bl_on);
@@ -270,8 +259,6 @@ void display_init() {
 #ifdef LCD_SPI_MASTER
     lcd_init_impl();
 #else
-    esp_lcd_panel_io_handle_t io_handle = NULL;
-    esp_lcd_panel_io_spi_config_t io_config;
     memset(&io_config, 0, sizeof(io_config));
     io_config.dc_gpio_num = LCD_DC;
     io_config.cs_gpio_num = LCD_CS;
@@ -284,18 +271,13 @@ void display_init() {
     io_config.lcd_param_bits = 8;
     io_config.spi_mode = 0;
     io_config.trans_queue_depth = 10;
-    io_config.on_color_trans_done = [](esp_lcd_panel_io_handle_t lcd_io,
-                                       esp_lcd_panel_io_event_data_t* edata,
-                                       void* user_ctx) {
-        lcd.flush_complete();
-        return true;
-    };
+    io_config.on_color_trans_done = display_flush_cb;
     // Attach the LCD to the SPI bus
-    esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_PORT, &io_config,
-                             &io_handle);
-
-    esp_lcd_panel_handle_t lcd_handle = NULL;
-    esp_lcd_panel_dev_config_t lcd_config;
+    if(ESP_OK!=esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_PORT, &io_config,
+                             &io_handle)) {
+        goto error;
+    }
+    
     memset(&lcd_config, 0, sizeof(lcd_config));
 #ifdef LCD_RST
     lcd_config.reset_gpio_num = LCD_RST;
@@ -303,17 +285,9 @@ void display_init() {
     lcd_config.reset_gpio_num = -1;
 #endif
 #if defined(LCD_BGR) && LCD_BGR != 0
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     lcd_config.rgb_endian = LCD_RGB_ENDIAN_BGR;
 #else
-    lcd_config.color_space = ESP_LCD_COLOR_SPACE_BGR;
-#endif
-#else
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     lcd_config.rgb_endian = LCD_RGB_ENDIAN_RGB;
-#else
-    lcd_config.color_space = ESP_LCD_COLOR_SPACE_RGB;
-#endif
 #endif
 #ifdef LCD_BIT_DEPTH
     lcd_config.bits_per_pixel = LCD_BIT_DEPTH;
@@ -322,36 +296,45 @@ void display_init() {
 #endif
 
     // Initialize the LCD configuration
-    LCD_PANEL(io_handle, &lcd_config, &lcd_handle);
+    if(ESP_OK!=LCD_PANEL(io_handle, &lcd_config, &lcd_handle)) {
+        goto error;
+    }
 
     // Reset the display
-    esp_lcd_panel_reset(lcd_handle);
+    if(ESP_OK!=esp_lcd_panel_reset(lcd_handle)) {
+        goto error;
+    }
 
     // Initialize LCD panel
-    esp_lcd_panel_init(lcd_handle);
+    if(ESP_OK!=esp_lcd_panel_init(lcd_handle)) {
+        goto error;
+    }
 #ifdef LCD_GAP_X
-    static constexpr int lcd_gap_x = LCD_GAP_X;
+    static const unsigned int lcd_gap_x = LCD_GAP_X;
 #else
-    static constexpr int lcd_gap_x = 0;
+    static const unsigned int lcd_gap_x = 0;
 #endif
 #ifdef LCD_GAP_Y
-    static constexpr int lcd_gap_y = LCD_GAP_Y;
+    static const unsigned int lcd_gap_y = LCD_GAP_Y;
 #else
-    static constexpr int lcd_gap_y = 0;
+    static unsigned int lcd_gap_y = 0;
 #endif
     esp_lcd_panel_set_gap(lcd_handle, lcd_gap_x, lcd_gap_y);
-#ifdef LCD_SWAP_XY
-    esp_lcd_panel_swap_xy(lcd_handle, LCD_SWAP_XY);
-#endif
-#ifdef LCD_MIRROR_X
-    static constexpr int lcd_mirror_x = LCD_MIRROR_X;
+#if defined(LCD_SWAP_XY) && LCD_SWAP_XY == 1
+    static const unsigned int lcd_swap_xy = 1;
 #else
-    static constexpr int lcd_mirror_x = 0;
+    static const unsigned int lcd_swap_xy = 0;
+#endif
+    esp_lcd_panel_swap_xy(lcd_handle, lcd_swap_xy);
+#ifdef LCD_MIRROR_X
+    static unsigned int lcd_mirror_x = LCD_MIRROR_X;
+#else
+    static const unsigned int lcd_mirror_x = 0;
 #endif
 #ifdef LCD_MIRROR_Y
-    static constexpr int lcd_mirror_y = LCD_MIRROR_Y;
+    static const unsigned int lcd_mirror_y = LCD_MIRROR_Y;
 #else
-    static constexpr int lcd_mirror_y = 0;
+    static unsigned int lcd_mirror_y = 0;
 #endif
     esp_lcd_panel_mirror(lcd_handle, lcd_mirror_x, lcd_mirror_y);
 #ifdef LCD_INVERT_COLOR
@@ -359,64 +342,83 @@ void display_init() {
 #endif
 
     // Turn on the screen
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     esp_lcd_panel_disp_on_off(lcd_handle, true);
-#else
-    esp_lcd_panel_disp_off(lcd_handle, false);
-#endif
 #endif
 #if defined(LCD_BL) && LCD_BL > 1
     gpio_set_level((gpio_num_t)LCD_BL, bl_on);
 #endif
-    
+    memset(&tio_cfg,0,sizeof(tio_cfg));
+    tio_cfg.dev_addr = ESP_LCD_TOUCH_IO_I2C_FT5x06_ADDRESS;
+    tio_cfg.control_phase_bytes = 1;
+    tio_cfg.dc_bit_offset = 0;
+    tio_cfg.lcd_cmd_bits = 8;
+    tio_cfg.lcd_param_bits = 8;
+    tio_cfg.flags.disable_control_phase = 1;
+    tio_cfg.flags.dc_low_on_data = 0;
+    tio_cfg.on_color_trans_done = NULL;
+    tio_cfg.scl_speed_hz = 200*1000;
+    tio_cfg.user_ctx = NULL;
+    if(ESP_OK!=i2c_master_get_bus_handle(I2C_PORT,&i2c_handle)) {
+        goto error;
+    }
+    if(ESP_OK!=esp_lcd_new_panel_io_i2c(i2c_handle, &tio_cfg,&tio_handle)) {
+        goto error;
+    }
+    memset(&tp_cfg,0,sizeof(tp_cfg));
+    tp_cfg.x_max = touch_hres;
+    tp_cfg.y_max = touch_vres;
+    tp_cfg.rst_gpio_num = (gpio_num_t)LCD_TOUCH_PIN_NUM_RST;
+    tp_cfg.int_gpio_num = (gpio_num_t)LCD_TOUCH_PIN_NUM_INT;
+    tp_cfg.levels.reset = 0;
+    tp_cfg.levels.interrupt = 0;
+    tp_cfg.flags.swap_xy = touch_swap_xy;
+    tp_cfg.flags.mirror_x = touch_mirror_x;
+    tp_cfg.flags.mirror_y = touch_mirror_y;
+
+    if(ESP_OK!=esp_lcd_touch_new_i2c_ft5x06(tio_handle,&tp_cfg,&touch_handle)) {
+        goto error;
+    }
+
+    return 0;
+error:
+#ifndef LCD_SPI_MASTER
+    if(lcd_handle!=NULL) {
+        esp_lcd_panel_del(lcd_handle);
+        lcd_handle = NULL;
+    }    
+    if(io_handle!=NULL) {
+        esp_lcd_panel_io_del(io_handle);
+    }
+#endif
+    if(touch_handle!=NULL) {
+        esp_lcd_touch_del(touch_handle);
+        touch_handle = NULL;
+    }
+    if(tio_handle!=NULL) {
+        esp_lcd_panel_io_del(tio_handle);
+    }
+    return -1;
+}
+void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp) {
 #ifdef LCD_SPI_MASTER
-    lcd.on_flush_callback(
-        [](const rect16& bounds, const void* bmp, void* state) {
-            int x1 = bounds.x1, y1 = bounds.y1, x2 = bounds.x2,
-                y2 = bounds.y2;
-            lcd_flush(x1,y1,x2,y2,bmp);
-        },
-    nullptr);
+        lcd_flush(x1,y1,x2,y2,bmp);
 #else
-    lcd.on_flush_callback(
-        [](const rect16& bounds, const void* bmp, void* state) {
-            int x1 = bounds.x1, y1 = bounds.y1, x2 = bounds.x2 + 1,
-                y2 = bounds.y2 + 1;
-            esp_lcd_panel_draw_bitmap((esp_lcd_panel_handle_t)state, x1, y1, x2,
-                                      y2, (void*)bmp);
-                                    },
-        lcd_handle);
+        esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2+1,y2+1, (void*)bmp);
 #endif
-    lcd.on_touch_callback(
-        [](point16* out_locations, size_t* in_out_locations_size, void* state) {
-            touch.update();
-            // UIX supports multiple touch points.
-            // so does the FT6336 so we potentially have
-            // two values
-            *in_out_locations_size = 0;
-            uint16_t x, y;
-            if (touch.xy(&x, &y)) {
-                out_locations[0] = point16(x, y);
-                ++*in_out_locations_size;
-                if (touch.xy2(&x, &y)) {
-                    out_locations[1] = point16(x, y);
-                    ++*in_out_locations_size;
-                }
-            }
-        });
-    touch.initialize();
-#ifdef FREENOVE_DEVKIT
-    touch.rotation(3);
-#else
-    touch.rotation(0);
-#endif
-    
 }
-void display_update() {
-    lcd.update();
+int display_touch_read(uint16_t* out_x_array,uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count) {
+    size_t count = *in_out_touch_count;
+    if(touch_handle==NULL || count==0) {return 0;}
+    *in_out_touch_count = 0;
+    uint8_t tmp;
+    if(esp_lcd_touch_get_coordinates(touch_handle,out_x_array,out_y_array,out_strength_array,&tmp,count)) {
+        *in_out_touch_count=count;
+        return count;
+    }
+    return 0;
 }
-void display_screen(void* screen) {
-    if(screen!=nullptr) {
-        lcd.active_screen(*(uix::screen_base*)screen);
+void display_update(void) {
+    if(touch_handle!=NULL) {
+        esp_lcd_touch_read_data(touch_handle);
     }
 }

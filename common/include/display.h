@@ -10,7 +10,7 @@
 #define LCD_BIT_DEPTH 16
 #endif
 #ifdef M5STACK_CORE2
-#include "esp_lcd_panel_ili9342.h"
+#include "esp_lcd_ili9341.h"
 #define LCD_HRES 320
 #define LCD_VRES 240
 #define LCD_PORT SPI3_HOST
@@ -19,7 +19,7 @@
 #define LCD_RST -1    // optional
 #define LCD_BL -1     // optional
 #define LCD_BL_LOW 0  // optional
-#define LCD_PANEL esp_lcd_new_panel_ili9342
+#define LCD_PANEL esp_lcd_new_panel_ili9341
 #define LCD_GAP_X 0                   // optional
 #define LCD_GAP_Y 0                   // optional
 #define LCD_SWAP_XY 0                 // optional
@@ -29,6 +29,8 @@
 #define LCD_BGR 1                     // optional
 #define LCD_BIT_DEPTH 16              // optional
 #define LCD_SPEED (40 * 1000 * 1000)  // optional
+#define LCD_TOUCH_PIN_NUM_RST -1
+#define LCD_TOUCH_PIN_NUM_INT -1
 #endif
 #ifdef FREENOVE_DEVKIT
 #define LCD_HRES 320
@@ -41,6 +43,8 @@
 #define LCD_BL -1     // optional
 #define LCD_BIT_DEPTH 16              // optional
 #define LCD_SPEED (80 * 1000 * 1000)  // optional
+#define LCD_TOUCH_PIN_NUM_RST -1
+#define LCD_TOUCH_PIN_NUM_INT -1
 #endif
 #ifdef LOCAL_PC
 #define LCD_BIT_DEPTH 16
@@ -76,16 +80,19 @@
 #define LCD_DC_BIT_OFFSET 0
 #endif
 
+#include <stdint.h>
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 /// @brief Initialize the display
-void display_init(void);
-/// @brief Update the display 
+/// @returns 0 on success, otherwise non-zero
+int display_init(void);
 void display_update(void);
-/// @brief switch the current screen
-/// @param screen a pointer to a uix::screen_base
-void display_screen(void* screen);
+void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp);
+void display_flush_complete(); // to be implemented by the user
+int display_touch_read(uint16_t* out_x_array,uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count);
 #ifdef __cplusplus
 }
 #endif

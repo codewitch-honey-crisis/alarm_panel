@@ -1,22 +1,20 @@
 #include "i2c.h"
-#include "driver/i2c.h"
+#include <memory.h>
+#include "driver/i2c_master.h"
 int i2c_master_init(void)
 {
-    int i2c_master_port = I2C_PORT;
-
-    i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = I2C_SDA,
-        .scl_io_num = I2C_SCL,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = I2C_SPEED,
-    };
-
-    // Configure I2C parameters
-    i2c_param_config(i2c_master_port, &i2c_conf);
-
-    // Install I2C driver
-    return ESP_OK!=i2c_driver_install(i2c_master_port, i2c_conf.mode, 0, 0, 0);
+    i2c_master_bus_config_t i2c_mst_config;
+    memset(&i2c_mst_config,0,sizeof(i2c_mst_config));
+    i2c_mst_config.clk_source = I2C_CLK_SRC_DEFAULT;
+    i2c_mst_config.i2c_port = I2C_PORT;
+    i2c_mst_config.scl_io_num = (gpio_num_t)I2C_SCL;
+    i2c_mst_config.sda_io_num = (gpio_num_t)I2C_SDA;
+    i2c_mst_config.glitch_ignore_cnt = 7;
+    i2c_mst_config.flags.enable_internal_pullup = true;
+    i2c_master_bus_handle_t bus;
+    if(ESP_OK!=i2c_new_master_bus(&i2c_mst_config, &bus)) {
+        return -1;
+    }
+    return 0;
 }
 
