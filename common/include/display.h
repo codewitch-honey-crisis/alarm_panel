@@ -33,8 +33,9 @@
 #define LCD_TOUCH_PIN_NUM_INT -1
 #endif
 #ifdef FREENOVE_DEVKIT
-#define LCD_HRES 320
-#define LCD_VRES 240
+#define LCD_HRES 240
+#define LCD_VRES 320
+#define LCD_SWAP_XY 1                 // optional
 #define LCD_SPI_MASTER
 #define LCD_PORT SPI3_HOST
 #define LCD_DC 0

@@ -144,9 +144,8 @@ void lcd_init_impl() {
 }
 #else
 static esp_lcd_panel_handle_t lcd_handle = NULL;
-esp_lcd_touch_handle_t touch_handle = NULL;
 #endif
-
+esp_lcd_touch_handle_t touch_handle = NULL;
 #ifdef FREENOVE_DEVKIT
 static void lcd_st7789_init() {
     lcd_command(0x01, NULL, 0);      // reset
@@ -215,17 +214,20 @@ void lcd_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
 static void lcd_on_flush_complete() {
     display_flush_complete();
 }
-#endif
+#else
 static bool display_flush_cb(esp_lcd_panel_io_handle_t lcd_io, esp_lcd_panel_io_event_data_t* edata, void* user_ctx) {
     display_flush_complete();
     return true;
 }
+#endif
+
 // initialize the screen 
 int display_init() {
+#ifndef LCD_SPI_MASTER
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_io_spi_config_t io_config;
     esp_lcd_panel_dev_config_t lcd_config;
-
+#endif
     esp_lcd_panel_io_i2c_config_t tio_cfg;
     esp_lcd_panel_io_handle_t tio_handle;
     i2c_master_bus_handle_t i2c_handle;
@@ -243,8 +245,8 @@ int display_init() {
     static const uint16_t touch_hres = LCD_HRES;
     static const uint16_t touch_vres = LCD_VRES;
     static const unsigned int touch_swap_xy = 1;
-    static const unsigned int touch_mirror_x = 1;
-    static const unsigned int touch_mirror_y = 0;
+    static const unsigned int touch_mirror_x = 0;
+    static const unsigned int touch_mirror_y = 1;
 #endif
 
 #if defined(LCD_BL) && LCD_BL > 1
