@@ -208,14 +208,13 @@ extern "C" void loop() {
 extern "C" void run() {
     assert(!i2c_master_init());
     assert(!power_init());  // do this first
-    spi_init();    // used by the LCD and SD reader
-    // initialize the display and user interface
+    assert(!spi_init());    // used by the LCD and SD reader
     assert(!display_init());
-    serial_init();
-    alarm_init();
+    assert(!serial_init());
+    assert(!alarm_init());
     assert(!ui_init());
-    net_init();
-    task_init(alarms_changed_socket_task, TASK_STACK_DEFAULT, TASK_AFFINITY_ANY, NULL);
+    assert(!net_init());
+    assert(task_init(alarms_changed_socket_task, TASK_STACK_DEFAULT, TASK_AFFINITY_ANY, NULL));
     // clear any junk from the second serial:
     serial_event_t evt;
     while (0 == serial_get_event(&evt));

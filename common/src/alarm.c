@@ -21,7 +21,10 @@ void alarm_enable(size_t alarm, char on) {
     if (alarm < 0 || alarm >= alarm_count) return;
     if (alarm_values[alarm] != on) {
         alarm_values[alarm] = on;
-        serial_send_alarm(alarm);
+        serial_event_t evt;
+        evt.cmd = alarm_values[alarm] ? SET_ALARM : CLEAR_ALARM;
+        evt.arg = alarm;
+        serial_send_event(&evt);
     }
 }
 void alarm_lock() {

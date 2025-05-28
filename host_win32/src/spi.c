@@ -1,4 +1,6 @@
 #include "spi.h"
 
-void spi_init() {
+int spi_init(void) {
+    // do nothing
+    return 0;
 }

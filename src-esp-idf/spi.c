@@ -5,7 +5,7 @@
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "ui.h"
-void spi_init() {
+int spi_init(void) {
     spi_bus_config_t buscfg;
     memset(&buscfg, 0, sizeof(buscfg));
     buscfg.sclk_io_num = SPI_CLK;
@@ -30,5 +30,8 @@ void spi_init() {
     buscfg.max_transfer_sz =
         (lcd_transfer_buffer_size > 512 ? lcd_transfer_buffer_size : 512) + 8;
     // Initialize the SPI bus on VSPI (SPI3)
-    ESP_ERROR_CHECK(spi_bus_initialize(SPI_PORT, &buscfg, SPI_DMA_CH_AUTO));
+    if(ESP_OK!=spi_bus_initialize(SPI_PORT, &buscfg, SPI_DMA_CH_AUTO)) {
+        return -1;
+    }
+    return 0;
 }

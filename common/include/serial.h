@@ -5,10 +5,12 @@
 #ifdef M5STACK_CORE2
 #define SERIAL_RX 32
 #define SERIAL_TX 33
+#define SERIAL_PORT UART_NUM_1
 #endif
 #ifdef FREENOVE_DEVKIT
 #define SERIAL_RX 12
 #define SERIAL_TX 13
+#define SERIAL_PORT UART_NUM_1
 #endif
 /// @brief A serial event
 typedef struct {
@@ -21,14 +23,14 @@ typedef struct {
 extern "C" {
 #endif
 /// @brief Initialize the serial port
-void serial_init(void);
+int serial_init(void);
 /// @brief Get an event
 /// @param out_event The event
 /// @return zero if data was retrieved, otherwise non-zero
 int serial_get_event(serial_event_t* out_event);
 /// @brief Send an alarm to the serial port
 /// @param i The index of the alarm to throw
-void serial_send_alarm(size_t i);
+void serial_send_event(const serial_event_t* event);
 #ifdef __cplusplus
 }
 #endif
