@@ -35,7 +35,8 @@
 #define LCD_TOUCH_PIN_NUM_INT -1
 #define LCD_TOUCH_ADDRESS ESP_LCD_TOUCH_IO_I2C_FT5x06_ADDRESS
 #define LCD_TOUCH_PANEL esp_lcd_touch_new_i2c_ft5x06
-#define LCD_TOUCH_VRES 240
+#define LCD_TOUCH_VRES 280
+#define LCD_TOUCH_DISABLE_CONTROL_PHASE
 #endif
 #ifdef FREENOVE_DEVKIT
 #include "esp_lcd_touch_ft5x06.h"
@@ -57,6 +58,7 @@
 #define LCD_TOUCH_PANEL esp_lcd_touch_new_i2c_ft5x06
 #define LCD_TOUCH_PIN_NUM_RST -1
 #define LCD_TOUCH_PIN_NUM_INT -1
+#define LCD_TOUCH_DISABLE_CONTROL_PHASE
 #endif
 #ifdef WAVESHARE_ESP32S3_43
 #include "esp_lcd_touch_gt911.h"

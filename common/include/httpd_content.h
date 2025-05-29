@@ -25,10 +25,6 @@ void httpd_content_api_index_clasp(void* resp_arg);
 void httpd_content_assets_index_BA9fT882_css(void* resp_arg);
 // ./assets/index-C12IFlAD.js
 void httpd_content_assets_index_C12IFlAD_js(void* resp_arg);
-/// @brief Matches a path to one of the response handler entries
-/// @param path_and_query The path to match which can include the query string (ignored)
-/// @return The index of the response handler entry, or -1 if no match
-int httpd_response_handler_match(const char* path_and_query);
 
 #ifdef __cplusplus
 }
@@ -47,78 +43,6 @@ httpd_response_handler_t httpd_response_handlers[7] = {
     { "/assets/index-C12IFlAD.js", "/assets/index-C12IFlAD.js", httpd_content_assets_index_C12IFlAD_js },
     { "/index.html", "/index.html", httpd_content_index_html }
 };
-// matches a path to a response handler index
-int httpd_response_handler_match(const char* path_and_query) {
-    static const int16_t fsm_data[] = {
-        -1, 1, 5, 1, 47, 0, 2, 13, 1, 97, 260, 1, 105, -1, 2, 21, 1, 112, 88, 1, 
-        115, -1, 1, 26, 1, 105, 1, 1, 31, 1, 47, 2, 1, 36, 1, 105, -1, 1, 41, 1, 
-        110, -1, 1, 46, 1, 100, -1, 1, 51, 1, 101, -1, 1, 56, 1, 120, -1, 1, 61, 1, 
-        46, -1, 1, 66, 1, 99, -1, 1, 71, 1, 108, -1, 1, 76, 1, 97, -1, 1, 81, 1, 
-        115, -1, 1, 86, 1, 112, 3, 0, -1, 1, 93, 1, 115, -1, 1, 98, 1, 101, -1, 1, 
-        103, 1, 116, -1, 1, 108, 1, 115, -1, 1, 113, 1, 47, -1, 1, 118, 1, 105, -1, 1, 
-        123, 1, 110, -1, 1, 128, 1, 100, -1, 1, 133, 1, 101, -1, 1, 138, 1, 120, -1, 1, 
-        143, 1, 45, -1, 2, 151, 1, 66, 208, 1, 67, -1, 1, 156, 1, 65, -1, 1, 161, 1, 
-        57, -1, 1, 166, 1, 102, -1, 1, 171, 1, 84, -1, 1, 176, 1, 56, -1, 1, 181, 1, 
-        56, -1, 1, 186, 1, 50, -1, 1, 191, 1, 46, -1, 1, 196, 1, 99, -1, 1, 201, 1, 
-        115, -1, 1, 206, 1, 115, 4, 0, -1, 1, 213, 1, 49, -1, 1, 218, 1, 50, -1, 1, 
-        223, 1, 73, -1, 1, 228, 1, 70, -1, 1, 233, 1, 108, -1, 1, 238, 1, 65, -1, 1, 
-        243, 1, 68, -1, 1, 248, 1, 46, -1, 1, 253, 1, 106, -1, 1, 258, 1, 115, 5, 0, 
-        -1, 1, 265, 1, 110, -1, 1, 270, 1, 100, -1, 1, 275, 1, 101, -1, 1, 280, 1, 120, 
-        -1, 1, 285, 1, 46, -1, 1, 290, 1, 104, -1, 1, 295, 1, 116, -1, 1, 300, 1, 109, 
-        -1, 1, 305, 1, 108, 6, 0 };
-    
-    int adv = 0;
-    int tlen;
-    int16_t tto;
-    int16_t prlen;
-    int16_t pcmp;
-    int i, j;
-    int ch;
-    int16_t state = 0;
-    int16_t acc = -1;
-    bool done;
-    bool result;
-    ch = (path_and_query[adv]=='\0'||path_and_query[adv]=='?') ? -1 : path_and_query[adv++];
-    while (ch != -1) {
-    	result = false;
-    	acc = -1;
-    	done = false;
-    	while (!done) {
-    	start_dfa:
-    		done = true;
-    		acc = fsm_data[state++];
-    		tlen = fsm_data[state++];
-    		for (i = 0; i < tlen; ++i) {
-    			tto = fsm_data[state++];
-    			prlen = fsm_data[state++];
-    			for (j = 0; j < prlen; ++j) {
-    				pcmp = fsm_data[state++];
-    				if (ch < pcmp) {
-    					state += (prlen - (j + 1));
-    					break;
-    				}
-    				if (ch == pcmp) {
-    					result = true;
-    					ch = (path_and_query[adv] == '\0' || path_and_query[adv] == '?') ? -1 : path_and_query[adv++];
-    					state = tto;
-    					done = false;
-    					goto start_dfa;
-    				}
-    			}
-    		}
-    		if (acc != -1 && result) {
-    			if (path_and_query[adv]=='\0' || path_and_query[adv]=='?') {
-    				return (int)acc;
-    			}
-    			return -1;
-    		}
-    		ch = (path_and_query[adv] == '\0' || path_and_query[adv] == '?') ? -1 : path_and_query[adv++];
-    		state = 0;
-    	}
-    }
-    return -1;
-    
-}
 void httpd_content_404_clasp(void* resp_arg) {
     // HTTP/1.1 404 Not found
     // Content-Type: text/html
