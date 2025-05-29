@@ -3,6 +3,7 @@
         "network.h": "c",
         "config.h": "c",
         "display.h": "c",
-        "serial.h": "c"
+        "serial.h": "c",
+        "spi.h": "c"
     }
 }

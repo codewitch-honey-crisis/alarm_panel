@@ -236,27 +236,6 @@ int display_init() {
     esp_lcd_touch_config_t tp_cfg;
     
     // for the touch panel
-#ifdef M5STACK_CORE2
-    static const uint16_t touch_hres = LCD_HRES;
-    static const uint16_t touch_vres = LCD_VRES+40;
-    static const unsigned int touch_swap_xy = 0;
-    static const unsigned int touch_mirror_x = 0;
-    static const unsigned int touch_mirror_y = 0;
-#endif
-#ifdef FREENOVE_DEVKIT
-    static const uint16_t touch_hres = LCD_HRES;
-    static const uint16_t touch_vres = LCD_VRES;
-    static const unsigned int touch_swap_xy = 1;
-    static const unsigned int touch_mirror_x = 0;
-    static const unsigned int touch_mirror_y = 1;
-#endif
-#ifdef WAVESHARE_ESP32S3_43
-    static const uint16_t touch_hres = LCD_HRES;
-    static const uint16_t touch_vres = LCD_VRES;
-    static const unsigned int touch_swap_xy = 0;
-    static const unsigned int touch_mirror_x = 0;
-    static const unsigned int touch_mirror_y = 0;
-#endif
 
 #if defined(LCD_BL) && LCD_BL > 1
 #ifdef LCD_BL_LOW

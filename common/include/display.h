@@ -59,6 +59,8 @@
 #define LCD_TOUCH_PIN_NUM_RST -1
 #define LCD_TOUCH_PIN_NUM_INT -1
 #define LCD_TOUCH_DISABLE_CONTROL_PHASE
+#define LCD_TOUCH_SWAP_XY 1
+#define LCD_TOUCH_MIRROR_Y 1
 #endif
 #ifdef WAVESHARE_ESP32S3_43
 #include "esp_lcd_touch_gt911.h"

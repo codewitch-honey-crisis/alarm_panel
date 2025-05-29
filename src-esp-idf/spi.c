@@ -6,7 +6,7 @@
 #include "driver/spi_master.h"
 #include "ui.h"
 int spi_init(void) {
-#ifdef SPI_HOST
+#ifdef SPI_PORT
     spi_bus_config_t buscfg;
     memset(&buscfg, 0, sizeof(buscfg));
     buscfg.sclk_io_num = SPI_CLK;
