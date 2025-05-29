@@ -12,6 +12,11 @@
 #define SERIAL_TX 13
 #define SERIAL_PORT UART_NUM_1
 #endif
+#ifdef WAVESHARE_ESP32S3_43
+#define SERIAL_RX 4
+#define SERIAL_TX 5
+#define SERIAL_PORT UART_NUM_1
+#endif
 /// @brief A serial event
 typedef struct {
     /// @brief The command

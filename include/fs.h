@@ -3,7 +3,8 @@
 #ifdef M5STACK_CORE2
 #define SD_PORT SPI3_HOST
 #define SD_CS 4
-#else
+#endif
+#ifdef FREENOVE_DEVKIT
 #define SDMMC_D0 40
 #define SDMMC_CLK 39
 #define SDMMC_CMD 38

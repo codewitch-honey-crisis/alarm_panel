@@ -5,18 +5,18 @@
 #include <memory.h>
 #include <driver/i2c_master.h>
 #include "i2c.h"
+#ifdef LCD_PIN_NUM_HSYNC
+#include "esp_lcd_panel_rgb.h"
+#else
 #include "spi.h"
-
-#include "driver/gpio.h"
 #include "driver/spi_master.h"
+#endif
+#include "driver/gpio.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_vendor.h"
 
 #include "esp_lcd_touch.h"
-#if defined(M5STACK_CORE2) || defined(FREENOVE_DEVKIT)
-#include "esp_lcd_touch_ft5x06.h"
-#endif
 #ifdef LCD_SPI_MASTER
 #include "hal/gpio_ll.h"
 #define DC_C GPIO.out_w1tc = (1 << LCD_DC);
@@ -225,7 +225,9 @@ static bool display_flush_cb(esp_lcd_panel_io_handle_t lcd_io, esp_lcd_panel_io_
 int display_init() {
 #ifndef LCD_SPI_MASTER
     esp_lcd_panel_io_handle_t io_handle = NULL;
+#ifndef LCD_PIN_NUM_HSYNC
     esp_lcd_panel_io_spi_config_t io_config;
+#endif
     esp_lcd_panel_dev_config_t lcd_config;
 #endif
     esp_lcd_panel_io_i2c_config_t tio_cfg;
@@ -248,6 +250,13 @@ int display_init() {
     static const unsigned int touch_mirror_x = 0;
     static const unsigned int touch_mirror_y = 1;
 #endif
+#ifdef WAVESHARE_ESP32S3_43
+    static const uint16_t touch_hres = LCD_HRES;
+    static const uint16_t touch_vres = LCD_VRES;
+    static const unsigned int touch_swap_xy = 0;
+    static const unsigned int touch_mirror_x = 0;
+    static const unsigned int touch_mirror_y = 0;
+#endif
 
 #if defined(LCD_BL) && LCD_BL > 1
 #ifdef LCD_BL_LOW
@@ -260,6 +269,74 @@ int display_init() {
 #endif
 #ifdef LCD_SPI_MASTER
     lcd_init_impl();
+#else
+#ifdef LCD_PIN_NUM_HSYNC
+    esp_lcd_rgb_panel_config_t panel_config;
+    memset(&panel_config,0,sizeof(esp_lcd_rgb_panel_config_t));
+    
+    panel_config.data_width = 16; // RGB565 in parallel mode, thus 16bit in width
+    //panel_config.dma_burst_size = 64;
+    panel_config.num_fbs = 1,
+    panel_config.clk_src = LCD_CLK_SRC_DEFAULT,
+    panel_config.disp_gpio_num = -1,
+    panel_config.pclk_gpio_num = LCD_PIN_NUM_CLK,
+    panel_config.vsync_gpio_num = LCD_PIN_NUM_VSYNC,
+    panel_config.hsync_gpio_num = LCD_PIN_NUM_HSYNC,
+    panel_config.de_gpio_num = LCD_PIN_NUM_DE,
+    panel_config.data_gpio_nums[0]=LCD_PIN_NUM_D00;
+    panel_config.data_gpio_nums[1]=LCD_PIN_NUM_D01;
+    panel_config.data_gpio_nums[2]=LCD_PIN_NUM_D02;
+    panel_config.data_gpio_nums[3]=LCD_PIN_NUM_D03;
+    panel_config.data_gpio_nums[4]=LCD_PIN_NUM_D04;
+    panel_config.data_gpio_nums[5]=LCD_PIN_NUM_D05;
+    panel_config.data_gpio_nums[6]=LCD_PIN_NUM_D06;
+    panel_config.data_gpio_nums[7]=LCD_PIN_NUM_D07;
+    panel_config.data_gpio_nums[8]=LCD_PIN_NUM_D08;
+    panel_config.data_gpio_nums[9]=LCD_PIN_NUM_D09;
+    panel_config.data_gpio_nums[10]=LCD_PIN_NUM_D10;
+    panel_config.data_gpio_nums[11]=LCD_PIN_NUM_D11;
+    panel_config.data_gpio_nums[12]=LCD_PIN_NUM_D12;
+    panel_config.data_gpio_nums[13]=LCD_PIN_NUM_D13;
+    panel_config.data_gpio_nums[14]=LCD_PIN_NUM_D14;
+    panel_config.data_gpio_nums[15]=LCD_PIN_NUM_D15;
+
+    memset(&panel_config.timings,0,sizeof(esp_lcd_rgb_timing_t));
+    
+    panel_config.timings.pclk_hz = LCD_PIXEL_CLOCK_HZ;
+    panel_config.timings.h_res = LCD_HRES;
+    panel_config.timings.v_res = LCD_VRES;
+    panel_config.timings.hsync_back_porch = LCD_HSYNC_BACK_PORCH;
+    panel_config.timings.hsync_front_porch = LCD_HSYNC_FRONT_PORCH;
+    panel_config.timings.hsync_pulse_width = LCD_HSYNC_PULSE_WIDTH;
+    panel_config.timings.vsync_back_porch = LCD_VSYNC_BACK_PORCH;
+    panel_config.timings.vsync_front_porch = LCD_VSYNC_FRONT_PORCH;
+    panel_config.timings.vsync_pulse_width = LCD_VSYNC_PULSE_WIDTH;
+    panel_config.timings.flags.pclk_active_neg = true;
+    panel_config.timings.flags.hsync_idle_low = false;
+    panel_config.timings.flags.pclk_idle_high = LCD_CLK_IDLE_HIGH;
+    panel_config.timings.flags.de_idle_high = LCD_DE_IDLE_HIGH;
+    panel_config.timings.flags.vsync_idle_low = false;
+    panel_config.flags.bb_invalidate_cache = true;
+    panel_config.flags.disp_active_low = false;
+    panel_config.flags.double_fb = false;
+    panel_config.flags.no_fb = false;
+    panel_config.flags.refresh_on_demand = false;
+    panel_config.flags.fb_in_psram = true; // allocate frame buffer in PSRAM
+    //panel_config.sram_trans_align = 4;
+    //panel_config.psram_trans_align = 64;
+    panel_config.num_fbs = 2;
+#ifdef LCD_BOUNCE_HEIGHT
+    panel_config.bounce_buffer_size_px = LCD_HRES*LCD_BOUNCE_HEIGHT;
+#endif
+    if(ESP_OK!=esp_lcd_new_rgb_panel(&panel_config, &lcd_handle)) {
+        goto error;
+    }
+    if(ESP_OK!=esp_lcd_panel_reset(lcd_handle)) {
+        goto error;
+    }
+    if(ESP_OK!=esp_lcd_panel_init(lcd_handle)) {
+        goto error;
+    }
 #else
     memset(&io_config, 0, sizeof(io_config));
     io_config.dc_gpio_num = LCD_DC;
@@ -279,7 +356,6 @@ int display_init() {
                              &io_handle)) {
         goto error;
     }
-    
     memset(&lcd_config, 0, sizeof(lcd_config));
 #ifdef LCD_RST
     lcd_config.reset_gpio_num = LCD_RST;
@@ -346,19 +422,22 @@ int display_init() {
     // Turn on the screen
     esp_lcd_panel_disp_on_off(lcd_handle, true);
 #endif
+#endif
 #if defined(LCD_BL) && LCD_BL > 1
     gpio_set_level((gpio_num_t)LCD_BL, bl_on);
 #endif
     memset(&tio_cfg,0,sizeof(tio_cfg));
-    tio_cfg.dev_addr = ESP_LCD_TOUCH_IO_I2C_FT5x06_ADDRESS;
-    tio_cfg.control_phase_bytes = 1;
-    tio_cfg.dc_bit_offset = 0;
-    tio_cfg.lcd_cmd_bits = 8;
-    tio_cfg.lcd_param_bits = 8;
+    tio_cfg.dev_addr = LCD_TOUCH_ADDRESS;
+    tio_cfg.control_phase_bytes = LCD_TOUCH_CONTROL_PHASE_BYTES;
+    tio_cfg.dc_bit_offset = LCD_TOUCH_DC_OFFSET;
+    tio_cfg.lcd_cmd_bits = LCD_TOUCH_CMD_BITS;
+    tio_cfg.lcd_param_bits = LCD_TOUCH_PARAM_BITS;
+#ifdef LCD_TOUCH_DISABLE_CONTROL_PHASE
     tio_cfg.flags.disable_control_phase = 1;
+#endif
     tio_cfg.flags.dc_low_on_data = 0;
     tio_cfg.on_color_trans_done = NULL;
-    tio_cfg.scl_speed_hz = 200*1000;
+    tio_cfg.scl_speed_hz = LCD_TOUCH_SPEED;
     tio_cfg.user_ctx = NULL;
     if(ESP_OK!=i2c_master_get_bus_handle(I2C_PORT,&i2c_handle)) {
         goto error;
@@ -367,17 +446,23 @@ int display_init() {
         goto error;
     }
     memset(&tp_cfg,0,sizeof(tp_cfg));
-    tp_cfg.x_max = touch_hres;
-    tp_cfg.y_max = touch_vres;
+    tp_cfg.x_max = LCD_TOUCH_HRES;
+    tp_cfg.y_max = LCD_TOUCH_VRES;
     tp_cfg.rst_gpio_num = (gpio_num_t)LCD_TOUCH_PIN_NUM_RST;
     tp_cfg.int_gpio_num = (gpio_num_t)LCD_TOUCH_PIN_NUM_INT;
     tp_cfg.levels.reset = 0;
     tp_cfg.levels.interrupt = 0;
-    tp_cfg.flags.swap_xy = touch_swap_xy;
-    tp_cfg.flags.mirror_x = touch_mirror_x;
-    tp_cfg.flags.mirror_y = touch_mirror_y;
+#ifdef LCD_TOUCH_SWAP_XY
+    tp_cfg.flags.swap_xy = 1;
+#endif
+#ifdef LCD_TOUCH_MIRROR_X
+    tp_cfg.flags.mirror_x = 1;
+#endif
+#ifdef LCD_TOUCH_MIRROR_Y
+    tp_cfg.flags.mirror_y = 1;
+#endif
 
-    if(ESP_OK!=esp_lcd_touch_new_i2c_ft5x06(tio_handle,&tp_cfg,&touch_handle)) {
+    if(ESP_OK!=LCD_TOUCH_PANEL(tio_handle,&tp_cfg,&touch_handle)) {
         goto error;
     }
 
@@ -402,10 +487,24 @@ error:
     return -1;
 }
 void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp) {
+#if defined(LCD_PIN_NUM_HSYNC) && defined(LCD_SWAP_COLOR_BYTES)
+    uint16_t* data = (uint16_t*)(void*)bmp;
+    uint16_t w = x2-x1+1,h=y2-y1+1;
+    size_t remaining = w*h;
+    while(remaining--) {
+        uint16_t tmp = *data;
+        tmp = ((tmp & 0xFF00) >> 8) | ((tmp & 0x00FF) << 8);
+        *data = tmp;
+        ++data;
+    }
+#endif
 #ifdef LCD_SPI_MASTER
-        lcd_flush(x1,y1,x2,y2,bmp);
+    lcd_flush(x1,y1,x2,y2,bmp);
 #else
-        esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2+1,y2+1, (void*)bmp);
+    esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2+1,y2+1, (void*)bmp);
+#endif
+#ifndef LCD_DMA
+    display_flush_complete();
 #endif
 }
 int display_touch_read(uint16_t* out_x_array,uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count) {

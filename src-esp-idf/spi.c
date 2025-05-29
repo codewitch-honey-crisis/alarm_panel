@@ -6,6 +6,7 @@
 #include "driver/spi_master.h"
 #include "ui.h"
 int spi_init(void) {
+#ifdef SPI_HOST
     spi_bus_config_t buscfg;
     memset(&buscfg, 0, sizeof(buscfg));
     buscfg.sclk_io_num = SPI_CLK;
@@ -33,5 +34,6 @@ int spi_init(void) {
     if(ESP_OK!=spi_bus_initialize(SPI_PORT, &buscfg, SPI_DMA_CH_AUTO)) {
         return -1;
     }
+#endif
     return 0;
 }

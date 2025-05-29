@@ -1,3 +1,6 @@
+#ifdef ESP_PLATFORM
+#include "esp_heap_caps.h"
+#endif
 #include "display.h"
 #include "ui.h"
 #include <stdio.h>
@@ -205,17 +208,33 @@ int ui_init() {
         LCD_WIDTH * LCD_HEIGHT * lcd_pixel_size / lcd_divisor;
 
     uint8_t* lcd_transfer_buffer1 =
+#ifdef LCD_PSRAM_BUFFER
+        (uint8_t*)heap_caps_malloc(lcd_transfer_buffer_size,MALLOC_CAP_SPIRAM);
+#else
         (uint8_t*)malloc(lcd_transfer_buffer_size);
-    uint8_t* lcd_transfer_buffer2 =
-        (uint8_t*)malloc(lcd_transfer_buffer_size);
-    if (lcd_transfer_buffer1 == nullptr || lcd_transfer_buffer2 == nullptr) {
+#endif
+    if (lcd_transfer_buffer1 == nullptr) {
         puts("Out of memory allocating transfer buffers");
         return -1;
     }
+#ifdef LCD_DMA
+    uint8_t* lcd_transfer_buffer2 =
+#ifdef LCD_PSRAM_BUFFER
+        (uint8_t*)heap_caps_malloc(lcd_transfer_buffer_size,MALLOC_CAP_SPIRAM);
+#else
+        (uint8_t*)malloc(lcd_transfer_buffer_size);
+#endif
+    if (lcd_transfer_buffer2 == nullptr) {
+        free(lcd_transfer_buffer1);
+        puts("Out of memory allocating transfer buffers");
+        return -1;
+    }
+#endif
     lcd.buffer_size(lcd_transfer_buffer_size);
     lcd.buffer1(lcd_transfer_buffer1);
+#ifdef LCD_DMA
     lcd.buffer2(lcd_transfer_buffer2);
-
+#endif
     main_screen.dimensions({LCD_WIDTH, LCD_HEIGHT});
     main_screen.background_color(color_t::black);
 
@@ -280,7 +299,7 @@ int ui_init() {
     web_link.bounds(sr.offset(0, main_screen.dimensions().height - sr.y2 - 1)
                         .offset(reset_all.dimensions().width, 0));
     web_link.back_color(color32_t::light_blue);
-    web_link.color(color32_t::dark_blue);
+    web_link.color(color32_t::black);
     web_link.border_color(color32_t::dark_gray);
     web_link.font(font_stream);
     web_link.font_size(sr.height() - 4);
@@ -311,7 +330,7 @@ int ui_init() {
     const uint16_t xofs = (main_screen.dimensions().width - total_width) / 2;
     const uint16_t yofs = main_screen.dimensions().height / 12;
     uint16_t x = 0;
-    // init the fire switch controls + labels
+    // init the switch controls + labels
     for (size_t i = 0; i < switches_count; ++i) {
         const uint16_t sofs = (swidth - sr.width()) / 2;
         switch_t& s = switches[i];
@@ -380,8 +399,8 @@ int ui_init() {
     // initialize the controls
     sr = srect16(0, 0, qr_screen.dimensions().width / 2,
                  qr_screen.dimensions().width / 8);
-    qr_link.bounds(srect16(0, 0, qr_screen.dimensions().width / 2,
-                           qr_screen.dimensions().width / 2)
+    qr_link.bounds(srect16(0, 0, qr_screen.dimensions().width / 3,
+                           qr_screen.dimensions().width / 3)
                        .center_horizontal(qr_screen.bounds()));
     qr_link.text("about:blank");
     qr_screen.register_control(qr_link);
