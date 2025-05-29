@@ -439,7 +439,9 @@ void display_flush_complete() {
     lcd.flush_complete();
 }
 void ui_update() {
+    alarm_lock();
     display_update();
+    alarm_unlock();
     // update the battery info
     static bool ac_in = power_ac();
     int bat_cmp = power_battery_level();

@@ -158,8 +158,6 @@ static void alarms_changed_socket_task(void* arg) {
 
 extern "C" void loop() {
     ui_update();
-    alarm_lock();
-    alarm_unlock();
     serial_event_t evt;
     if (0 == serial_get_event(&evt)) {
         switch (evt.cmd) {
