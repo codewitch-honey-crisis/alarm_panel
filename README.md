@@ -111,3 +111,28 @@ The Win32 host uses DirectX/Direct2D to present a draw surface suitable for a li
 
 The slave code is simple, and handles the basic fire alarm operation. When it receives a signal indicating a thrown switch it communicates that to control. Control then sends a throw command back to the slave in order to trip the alarm. Unthrowing the switch will NOT turn the alarm off. First the switch must be unthrown, and then the alarm must be turned off at the control. All this logic is effectively handled by the slave.
 
+### Supported devices (Control)
+
+The [M5Stack Core 2](https://shop.m5stack.com/products/m5stack-core2-esp32-iot-development-kit)
+
+The [Freenove ESP32-S3 Development Kit](https://store.freenove.com/products/fnk0086)
+
+The [Waveshare ESP32-S3 4.3inch Display Development Board](https://www.waveshare.com/esp32-s3-touch-lcd-4.3.htm)
+
+The [Makerfabs MaTouch_ESP32-S3 Parallel TFT with Touch 4.3inch](https://www.makerfabs.com/esp32-s3-parallel-tft-with-touch-4-3-inch.html)
+
+![M5Stack Core 2](https://shop.m5stack.com/cdn/shop/files/1_b5359a18-c82e-484f-8879-7d560bea0e66_1200x1200.webp)
+
+![Freenove ESP32-S3 Development Kit](https://store.freenove.com/cdn/shop/files/FNK0086.MAIN_f6d04865-3373-4383-897f-2719b9f2797d.jpg)
+
+![Waveshare ESP32-S3 4.3inch Display Development Board](https://www.waveshare.com/w/upload/8/86/360px-Esp32-s3-touch-lcd-4.3-001.jpg)
+
+### Supported devices (Slave)
+
+The [Arduino AtMega2560](https://store-usa.arduino.cc/products/arduino-mega-2560-rev3)
+
+The [Espressif ESP32 - any standard ESP32 kit](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32/esp32-devkitc/index.html)
+
+![Arduino AtMega2560](https://store-usa.arduino.cc/cdn/shop/files/A000067_00.front_643x483.jpg)
+
+![Espressif ESP32](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32/_images/esp32-devkitc-v4-functional-overview.jpg)
