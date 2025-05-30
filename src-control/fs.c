@@ -54,6 +54,6 @@ void fs_internal_init() {
     conf.base_path = "/spiffs";
     conf.partition_label = NULL;
     conf.max_files = 5;
-    conf.format_if_mount_failed = false;
+    conf.format_if_mount_failed = 1;
     ESP_ERROR_CHECK(esp_vfs_spiffs_register(&conf));
 }

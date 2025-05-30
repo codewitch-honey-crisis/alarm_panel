@@ -32,7 +32,7 @@ Installation and build steps:
 
 4. Configure include/config.h for the count of alarms and all the associated pins
 
-5. Upload filesystem image (you must do this even if it's empty because SPIFFS must be formatted)
+5. (Optional) Upload filesystem image (you must do this if you're using wifi.txt on SPIFFS)
 
 6. Upload Firmware to control (supported devices: M5Stack Core2, and Freenove ESP32-S3 Development Kit w/ integrated display)
 

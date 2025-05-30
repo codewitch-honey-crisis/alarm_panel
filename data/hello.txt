@@ -1,2 +1,0 @@
-hello world! 
-(just ensures the filesystem will be built)
