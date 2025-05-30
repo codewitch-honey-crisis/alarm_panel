@@ -26,13 +26,15 @@ Installation and build steps:
 
 2. Set the appropriate COM ports in platformio.ini
 
-3. (Optional - necessary for web interface) Add wifi.txt to an SD or spiffs to connect to the network. First line is the SSID, second is the network password
+3. Add wifi.txt to an SD or spiffs to connect to the network. First line is the SSID, second is the network password
 
 4. Configure include/config.h for the count of alarms and all the associated pins
 
-5. Upload Firmware to control (supported devices: M5Stack Core2, and Freenove ESP32-S3 Development Kit w/ integrated display)
+5. Upload filesystem image (you must do this even if it's empty because SPIFFS must be formatted)
 
-6. Upload Firmware to slave (supported devices: Arduino AtMega2560, or ESP32)
+6. Upload Firmware to control (supported devices: M5Stack Core2, and Freenove ESP32-S3 Development Kit w/ integrated display)
+
+7. Upload Firmware to slave (supported devices: Arduino AtMega2560, or ESP32)
 
 Note that you don't actually need the slave connected to test the UI and web interface.
 
