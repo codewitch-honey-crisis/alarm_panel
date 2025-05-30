@@ -6,7 +6,7 @@ int serial_init() {
 }
 int serial_get_event(serial_event_t* out_event) {
     // do nothing
-    return 0;
+    return -1;
 }
 int serial_send_event(const serial_event_t* event) {
     // do nothing
