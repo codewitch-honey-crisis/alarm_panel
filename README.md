@@ -111,7 +111,9 @@ The Win32 host uses DirectX/Direct2D to present a draw surface suitable for a li
 
 The slave code is simple, and handles the basic fire alarm operation. When it receives a signal indicating a thrown switch it communicates that to control. Control then sends a throw command back to the slave in order to trip the alarm. Unthrowing the switch will NOT turn the alarm off. First the switch must be unthrown, and then the alarm must be turned off at the control. All this logic is effectively handled by the slave.
 
-### Supported devices (Control)
+## Supported devices 
+
+### Control devices
 
 The [M5Stack Core 2](https://shop.m5stack.com/products/m5stack-core2-esp32-iot-development-kit)
 
@@ -129,7 +131,7 @@ The [Makerfabs MaTouch_ESP32-S3 Parallel TFT with Touch 4.3inch](https://www.mak
 
 ![Makerfabs MaTouch_ESP32-S3 Parallel TFT with Touch 4.3inch](https://www.makerfabs.com/media/catalog/product/cache/5082619e83af502b1cf28572733576a0/e/s/esp32-s3-paral_lel-tft_4.3-_6-1000x750.jpg)
 
-### Supported devices (Slave)
+### Slave devices
 
 The [Arduino AtMega2560](https://store-usa.arduino.cc/products/arduino-mega-2560-rev3)
 
