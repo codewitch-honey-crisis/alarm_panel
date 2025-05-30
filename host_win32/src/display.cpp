@@ -11,11 +11,11 @@
 #define LCD_RGB565
 #endif
 
-extern HINSTANCE hInst;  // current instance
-extern HWND hWndMain;
+extern "C" HINSTANCE hInst;  // current instance
+extern "C" HWND hWndMain;
 static HWND hwnd_dx = NULL;
 
-extern task_mutex_t app_mutex;
+extern "C" task_mutex_t app_mutex;
 static ID2D1HwndRenderTarget* render_target = NULL;
 static ID2D1Factory* d2d_factory = NULL;
 static ID2D1Bitmap* render_bitmap = NULL;
@@ -28,7 +28,7 @@ static int mouse_state = 0;  // 0 = released, 1 = pressed
 static int old_mouse_state = 0;
 static int mouse_req = 0;
 
-int display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp) {
+extern "C" int display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp) {
     if (render_bitmap != NULL) {
         D2D1_RECT_U b;
         b.top = y1;
@@ -134,7 +134,7 @@ static LRESULT CALLBACK WindowProcDX(HWND hWnd, UINT uMsg, WPARAM wParam,
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-int display_init() {
+extern "C" int display_init() {
     WNDCLASSEXW wcex;
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -208,7 +208,7 @@ int display_init() {
     return 0;
 }
 
-void display_update() {
+extern "C" void display_update() {
     if (render_target && render_bitmap) {
         if (0 == task_mutex_lock(app_mutex, -1)) {  // no time-out interval
             render_target->BeginDraw();
@@ -222,7 +222,7 @@ void display_update() {
     }
 }
 
-int display_touch_read(uint16_t* out_x_array, uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count) {
+extern "C" int display_touch_read(uint16_t* out_x_array, uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count) {
     if (!*in_out_touch_count) {
         return -1;
     }

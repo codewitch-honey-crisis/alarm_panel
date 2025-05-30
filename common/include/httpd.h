@@ -29,7 +29,7 @@ void httpd_end(void);
 /// @param on_request_callback The request callback function
 /// @param on_request_callback_state User defined state to pass to the callback
 /// @return 0 on success, non-zero on error
-int httpd_register_handler(const char* path,void(*on_request_callback)(const char* method, const char* path_and_query, void*arg, void*state), void* on_request_callback_state);
+int httpd_register_handler(const char* path,void(*on_request_callback)(const char* method, const char* path_and_query, void* context, void*state), void* on_request_callback_state);
 /// @brief Adds a websocket listener
 /// @param path The path to handle (url encoded)
 /// @param on_connect_callback The function called on connect (may be null)
@@ -37,7 +37,7 @@ int httpd_register_handler(const char* path,void(*on_request_callback)(const cha
 /// @param on_receive_callback The function called when data is received
 /// @param on_receive_callback_state User defined state to pass to the callback
 /// @return 
-int httpd_register_websocket(const char* path,void(*on_connect_callback)(const char* path_and_query, void*state),void* on_connect_callback_state,void(*on_receive_callback)(const ws_srv_frame_t* frame, void* arg, void* state), void* on_receive_callback_state);
+int httpd_register_websocket(const char* path,void(*on_connect_callback)(const char* path_and_query, void*state),void* on_connect_callback_state,void(*on_receive_callback)(const ws_srv_frame_t* frame, void* context, void* state), void* on_receive_callback_state);
 /// @brief Broadcasts data to all connected web sockets
 /// @param path_and_query The path and query string to broadcast to. This must be the same as what was used to connect, or NULL to broadcast to all sockets
 /// @param frame The websocket frame to send
@@ -45,9 +45,9 @@ int httpd_register_websocket(const char* path,void(*on_connect_callback)(const c
 int httpd_broadcast_ws_frame(const char* path_and_query, const ws_srv_frame_t* frame);
 /// @brief Sends a frame to a web socket
 /// @param frame The frame to send
-/// @param arg The context argument (contains info like platform specific socket info)
+/// @param context The context argument (contains info like platform specific socket info)
 /// @return 0 on success, non-zero on error
-int httpd_send_ws_frame(const ws_srv_frame_t* frame, void* arg);
+int httpd_send_ws_frame(const ws_srv_frame_t* frame, void* context);
 
 #ifdef __cplusplus
 }

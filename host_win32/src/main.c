@@ -9,9 +9,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <assert.h>
-extern "C" void run();
-extern "C" void loop();
-extern "C" int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+extern void run();
+extern void loop();
+extern int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                                  _In_opt_ HINSTANCE hPrevInstance,
                                  _In_ LPWSTR lpCmdLine, _In_ int nCmdShow);
 
@@ -23,17 +23,17 @@ HWND hWndMain;
 extern task_mutex_t app_mutex;
 task_mutex_t app_mutex = NULL;
 static HANDLE app_thread = NULL;
-static bool should_quit = false;
+static char should_quit = 0;
 
 // this handles our main application loop
 // plus rendering
 static DWORD CALLBACK render_thread_proc(void* state) {
     
-    bool quit = false;
+    char quit = 0;
     while (!quit) {
         
         if (WAIT_OBJECT_0 == WaitForSingleObject(quit_event, 0)) {
-            quit = true;
+            quit = 1;
         }
     }
     return 0;
@@ -63,7 +63,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
     hWndMain = CreateWindowW(
         L"WIN32_HOST", L"Win32 Host", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
         CW_USEDEFAULT, CW_USEDEFAULT, r.right - r.left ,
-        r.bottom - r.top , nullptr, nullptr, hInstance, nullptr);
+        r.bottom - r.top , NULL, NULL, hInstance, NULL);
 
     
     ShowWindow(hWndMain, nCmdShow);
@@ -88,7 +88,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
     wcex.hIcon = NULL;
-    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wcex.lpszMenuName = NULL;
     wcex.lpszClassName = L"WIN32_HOST";
@@ -96,7 +96,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if(0==RegisterClassExW(&wcex)) {
         DWORD err = GetLastError();
-        assert(false);
+        assert(0);
     }
 
 
@@ -110,7 +110,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         DWORD result = 0;
         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
             if (msg.message == WM_QUIT) {
-                should_quit = true;
+                should_quit = 1;
                 break;
             }
            
@@ -120,7 +120,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         loop();
         if (WAIT_OBJECT_0 == WaitForSingleObject(quit_event, 0)) {
-            should_quit = true;
+            should_quit = 1;
         }
     }
     CoUninitialize();
