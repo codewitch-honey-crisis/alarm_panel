@@ -1,10 +1,10 @@
 #include "display.h"
 #pragma comment(lib, "d2d1.lib")
-#include "d2d1.h"
 #include <memory.h>
+
+#include "d2d1.h"
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-
 
 #include "task.h"
 #if LCD_BIT_DEPTH == 16
@@ -61,7 +61,7 @@ int display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void
         }
         int result = SUCCEEDED(render_bitmap->CopyFromMemory(&b, bmp32, w * 4));
         free(bmp32);
-        if(!result) {
+        if (!result) {
             return -1;
         }
 #endif
@@ -84,7 +84,6 @@ static bool read_mouse(int* out_x, int* out_y) {
     }
     return false;
 }
-
 static LRESULT CALLBACK WindowProcDX(HWND hWnd, UINT uMsg, WPARAM wParam,
                                      LPARAM lParam) {
     // shouldn't get this, but handle anyway
@@ -185,7 +184,7 @@ int display_init() {
     }
 
     // initialize the render bitmap
-    memset(&size,0,sizeof(size));
+    memset(&size, 0, sizeof(size));
     D2D1_BITMAP_PROPERTIES props;
     render_target->GetDpi(&props.dpiX, &props.dpiY);
     D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat(
