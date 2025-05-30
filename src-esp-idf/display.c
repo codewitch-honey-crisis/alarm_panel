@@ -488,12 +488,12 @@ void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const voi
 }
 int display_touch_read(uint16_t* out_x_array,uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count) {
     size_t count = *in_out_touch_count;
-    if(touch_handle==NULL || count==0) {return 0;}
+    if(touch_handle==NULL || count==0) {return -1;}
     *in_out_touch_count = 0;
     uint8_t tmp;
     if(esp_lcd_touch_get_coordinates(touch_handle,out_x_array,out_y_array,out_strength_array,&tmp,count)) {
         *in_out_touch_count=count;
-        return count;
+        return 0;
     }
     return 0;
 }

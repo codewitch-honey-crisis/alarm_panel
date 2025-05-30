@@ -23,6 +23,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+/// @brief Initialize the I2C bus
+/// @return 0 on success, non-zero on error
 int i2c_master_init();
 #ifdef __cplusplus
 }

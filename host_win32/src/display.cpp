@@ -221,7 +221,7 @@ void display_update() {
 
 int display_touch_read(uint16_t* out_x_array, uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count) {
     if (!*in_out_touch_count) {
-        return 0;
+        return -1;
     }
     *in_out_touch_count = 0;
     int x, y;

@@ -187,9 +187,23 @@ extern "C" {
 /// @brief Initialize the display
 /// @returns 0 on success, otherwise non-zero
 int display_init(void);
+/// @brief Processes any display bookkeeping that needs to be done
 void display_update(void);
+/// @brief Flushes bitmap data to the display
+/// @param x1 The starting x coord
+/// @param y1 The starting y coord
+/// @param x2 The ending x coord
+/// @param y2 The ending y coord
+/// @param bmp The bitmap data
 void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp);
-void display_flush_complete(); // to be implemented by the user
+/// @brief Called by the display when a flush has finished - to be implemented by the user
+void display_flush_complete();
+/// @brief Reads the touch information from the display
+/// @param out_x_array An array to hold the x values for each touch point
+/// @param out_y_array An array to hold the y values for each touch point
+/// @param out_strength_array An array to hold the strength values for each touch point
+/// @param in_out_touch_count On input, the number of touches the arrays can hold, on output, the number actually filled
+/// @return 0 on success, non-zero on error
 int display_touch_read(uint16_t* out_x_array,uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count);
 #ifdef __cplusplus
 }

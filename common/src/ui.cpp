@@ -437,7 +437,7 @@ int ui_init() {
             uint16_t y[2];
             uint16_t strength[2];
             size_t count = 2;
-            if(display_touch_read(x, y, strength, &count)) {
+            if(0==display_touch_read(x, y, strength, &count) && count>0) {
                 *in_out_locations_size = count;
             }
             if(count>0) {
