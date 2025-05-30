@@ -1,6 +1,7 @@
 import { useEffect, Suspense } from "react";
 import './App.css'
 import { connectSwitches, setSwitches, resetSwitches } from './default.js';
+// TODO: replace the fetchData REST api query with a websocket request wrapped in a promise
 const fetchData = () => {
     let data;
     const promise = fetch("./api/")
