@@ -82,7 +82,7 @@ The default platform io folders house shared code under `./include`, as well as 
 The implementation for the control end of the source code is under `./src-control`, but this simply supports the application logic which resides under `./common/src/control.cpp`
 
 - `./boards` contains PIO support for the freenove devkit
-- `./build_tools` contains ClASP-Tree which is necessary to embed the generated web content into the firmware source code `./include/httpd_content.h`
+- `./build_tools` contains ClASP-Tree which is necessary to embed the generated web content into the firmware source code `./common/include/httpd_content.h`
 - `./common` contains the code that is common to both the ESP-IDF and Win32, including the main application logic in `./common/src/control.cpp`
 - `./host_win32` is its own project, and hosts the common code under Windows for easier testing and development
 - `./react-web` is where all the web content goes:
