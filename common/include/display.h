@@ -37,6 +37,7 @@
 #define LCD_TOUCH_PANEL esp_lcd_touch_new_i2c_ft5x06
 #define LCD_TOUCH_VRES 280
 #define LCD_TOUCH_DISABLE_CONTROL_PHASE
+#define LCD_TOUCH_OVERHANG_Y 40
 #endif
 #ifdef FREENOVE_DEVKIT
 #include "esp_lcd_touch_ft5x06.h"
@@ -235,6 +236,13 @@
 #ifndef LCD_TOUCH_SPEED
 #define LCD_TOUCH_SPEED I2C_SPEED
 #endif
+#ifndef LCD_TOUCH_OVERHANG_X
+#define LCD_TOUCH_OVERHANG_X 0
+#endif
+#ifndef LCD_TOUCH_OVERHANG_Y
+#define LCD_TOUCH_OVERHANG_Y 0
+#endif
+
 #ifndef LCD_TOUCH_WIDTH
 #ifdef LCD_TOUCH_SWAP_XY
 #if LCD_TOUCH_SWAP_XY

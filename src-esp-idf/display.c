@@ -497,8 +497,8 @@ int display_touch_read(uint16_t* out_x_array,uint16_t* out_y_array, uint16_t* ou
         *in_out_touch_count=count;
         static const uint16_t lcd_width = LCD_WIDTH;
         static const uint16_t lcd_height = LCD_HEIGHT;
-        static const uint16_t lcd_touch_width = LCD_TOUCH_WIDTH;
-        static const uint16_t lcd_touch_height = LCD_TOUCH_HEIGHT;
+        static const uint16_t lcd_touch_width = LCD_TOUCH_WIDTH - LCD_TOUCH_OVERHANG_X;
+        static const uint16_t lcd_touch_height = LCD_TOUCH_HEIGHT - LCD_TOUCH_OVERHANG_Y;
         if(lcd_width!=lcd_touch_width||lcd_height!=lcd_touch_height) {
             const float xfactor = (float)lcd_width/(float)lcd_touch_width;
             const float yfactor = (float)lcd_height/(float)lcd_touch_height;
