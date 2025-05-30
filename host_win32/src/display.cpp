@@ -28,7 +28,7 @@ static int mouse_state = 0;  // 0 = released, 1 = pressed
 static int old_mouse_state = 0;
 static int mouse_req = 0;
 
-void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp) {
+int display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp) {
     if (render_bitmap != NULL) {
         D2D1_RECT_U b;
         b.top = y1;
@@ -41,7 +41,7 @@ void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const voi
         int w = x2 - x1 + 1;
         int h = y2 - y1 + 1;
         uint32_t* bmp32 = (uint32_t*)malloc(w * h * 4);
-        if (bmp32 == NULL) return;
+        if (bmp32 == NULL) return -1;
         uint32_t* pd = bmp32;
         const uint16_t* ps = (uint16_t*)bmp;
         size_t pix_left = (size_t)(w * h);
@@ -59,11 +59,15 @@ void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const voi
             px |= (((b * 255) / 31) << 16);
             *(pd++) = px;
         }
-        render_bitmap->CopyFromMemory(&b, bmp32, w * 4);
+        int result = SUCCEEDED(render_bitmap->CopyFromMemory(&b, bmp32, w * 4));
         free(bmp32);
+        if(!result) {
+            return -1;
+        }
 #endif
     }
     display_flush_complete();
+    return 0;
 }
 static bool read_mouse(int* out_x, int* out_y) {
     if (0 == task_mutex_lock(

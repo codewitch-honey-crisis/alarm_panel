@@ -274,7 +274,8 @@ void display_update(void);
 /// @param x2 The ending x coord
 /// @param y2 The ending y coord
 /// @param bmp The bitmap data
-void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp);
+/// @return 0 on success, nonzero on error
+int display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp);
 /// @brief Called by the display when a flush has finished - to be implemented by the user
 void display_flush_complete();
 /// @brief Reads the touch information from the display

@@ -424,7 +424,9 @@ int ui_init() {
         [](const rect16& bounds, const void* bmp, void* state) {
             int x1 = bounds.x1, y1 = bounds.y1, x2 = bounds.x2 ,
                 y2 = bounds.y2;
-            display_flush(x1, y1, x2,y2, bmp);
+            if(display_flush(x1, y1, x2,y2, bmp)) {
+                lcd.flush_complete(); // make sure this fires on error
+            }
         });                                    
 
     lcd.on_touch_callback(

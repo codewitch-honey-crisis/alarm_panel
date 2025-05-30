@@ -467,7 +467,7 @@ error:
     }
     return -1;
 }
-void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp) {
+int display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const void* bmp) {
 #if defined(LCD_PIN_NUM_HSYNC) && defined(LCD_SWAP_COLOR_BYTES)
     uint16_t* data = (uint16_t*)(void*)bmp;
     uint16_t w = x2-x1+1,h=y2-y1+1;
@@ -482,11 +482,14 @@ void display_flush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const voi
 #ifdef LCD_SPI_MASTER
     lcd_flush(x1,y1,x2,y2,bmp);
 #else
-    esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2+1,y2+1, (void*)bmp);
+    if(ESP_OK!=esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2+1,y2+1, (void*)bmp)) {
+        return -1;
+    }
 #endif
 #ifndef LCD_DMA
     display_flush_complete();
 #endif
+    return 0;
 }
 int display_touch_read(uint16_t* out_x_array,uint16_t* out_y_array, uint16_t* out_strength_array, size_t* in_out_touch_count) {
     size_t count = *in_out_touch_count;
