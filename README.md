@@ -34,9 +34,9 @@ Installation and build steps:
 
 5. (Optional) Upload filesystem image (you must do this if you're using wifi.txt on SPIFFS)
 
-6. Upload Firmware to control (supported devices: M5Stack Core2, and Freenove ESP32-S3 Development Kit w/ integrated display)
+6. Upload Firmware to a supported device - control
 
-7. Upload Firmware to slave (supported devices: Arduino AtMega2560, or ESP32)
+7. Upload Firmware to a supported device - slave 
 
 Note that you don't actually need the slave connected to test the UI and web interface.
 
