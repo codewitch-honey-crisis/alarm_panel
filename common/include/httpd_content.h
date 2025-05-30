@@ -14,13 +14,13 @@ extern "C" {
 #endif
 
 // ./index.html
-void httpd_content_index_html(void* resp_arg);
+void httpd_content_index_html(void* context);
 // ./api/index.clasp
-void httpd_content_api_index_clasp(void* resp_arg);
+void httpd_content_api_index_clasp(void* context);
 // ./assets/index-BA9fT882.css
-void httpd_content_assets_index_BA9fT882_css(void* resp_arg);
+void httpd_content_assets_index_BA9fT882_css(void* context);
 // ./assets/index-C12IFlAD.js
-void httpd_content_assets_index_C12IFlAD_js(void* resp_arg);
+void httpd_content_assets_index_C12IFlAD_js(void* context);
 
 #ifdef __cplusplus
 }
@@ -39,7 +39,7 @@ httpd_response_handler_t httpd_response_handlers[7] = {
     { "/assets/index-C12IFlAD.js", "/assets/index-C12IFlAD.js", httpd_content_assets_index_C12IFlAD_js },
     { "/index.html", "/index.html", httpd_content_index_html }
 };
-void httpd_content_index_html(void* resp_arg) {
+void httpd_content_index_html(void* context) {
     // HTTP/1.1 200 OK
     // Content-Type: text/html
     // Content-Encoding: deflate
@@ -64,12 +64,12 @@ void httpd_content_index_html(void* resp_arg) {
         0x20, 0xCA, 0x5F, 0xDC, 0x90, 0xF0, 0xF0, 0x9F, 0xF7, 0xD0, 0xDF, 0x1F, 0xF6, 0x6D, 0xBB, 0x59, 0xB9, 0x5C, 0x80, 0x95, 
         0x6E, 0x96, 0x77, 0x55, 0xFA, 0x35, 0xFA, 0xE9, 0xFB, 0x18, 0x4F, 0x67, 0x20, 0x6F, 0x54, 0x8A, 0x51, 0xE6, 0xA1, 0x25, 
         0x9E, 0x95, 0x8B, 0x62, 0x6E, 0x99, 0x5F, 0xFF, 0x05, 0x00, 0x00, 0xFF, 0xFF };
-    httpd_send_block((const char*)http_response_data,sizeof(http_response_data), resp_arg);
-    free(resp_arg);
+    httpd_send_block((const char*)http_response_data,sizeof(http_response_data), context);
+    free(context);
 }
-void httpd_content_api_index_clasp(void* resp_arg) {
+void httpd_content_api_index_clasp(void* context) {
     httpd_send_block("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nContent-Type: appl"
-        "ication/json\r\n\r\n1\r\n[\r\n", 85, resp_arg);
+        "ication/json\r\n\r\n1\r\n[\r\n", 85, context);
     
     for(size_t i = 0;i<alarm_count;++i) {
         alarm_lock();
@@ -78,29 +78,29 @@ void httpd_content_api_index_clasp(void* resp_arg) {
         if(i==0) {
             if(b) {
                 
-    httpd_send_block("4\r\ntrue\r\n", 9, resp_arg);
+    httpd_send_block("4\r\ntrue\r\n", 9, context);
     
             } else {
                 
-    httpd_send_block("5\r\nfalse\r\n", 10, resp_arg);
+    httpd_send_block("5\r\nfalse\r\n", 10, context);
     
             }
         } else {
             if(b) {
                 
-    httpd_send_block("5\r\n,true\r\n", 10, resp_arg);
+    httpd_send_block("5\r\n,true\r\n", 10, context);
     
             } else {
                 
-    httpd_send_block("6\r\n,false\r\n", 11, resp_arg);
+    httpd_send_block("6\r\n,false\r\n", 11, context);
     
             }
         }
     }
-    httpd_send_block("1\r\n]\r\n0\r\n\r\n", 11, resp_arg);
-    free(resp_arg);
+    httpd_send_block("1\r\n]\r\n0\r\n\r\n", 11, context);
+    free(context);
 }
-void httpd_content_assets_index_BA9fT882_css(void* resp_arg) {
+void httpd_content_assets_index_BA9fT882_css(void* context) {
     // HTTP/1.1 200 OK
     // Content-Type: text/css
     // Content-Encoding: deflate
@@ -161,10 +161,10 @@ void httpd_content_assets_index_BA9fT882_css(void* resp_arg) {
         0xC2, 0x2F, 0x7D, 0x3C, 0x12, 0x27, 0xF7, 0x87, 0xC6, 0x3F, 0xDA, 0x33, 0x3E, 0x6E, 0x05, 0xD3, 0xAB, 0xFB, 0xA5, 0x7F, 
         0xBD, 0xBC, 0xAB, 0xFE, 0xF8, 0xDB, 0x22, 0x99, 0x3D, 0x4C, 0xBB, 0x7B, 0x97, 0xEC, 0x7B, 0x3D, 0xDE, 0xDE, 0xFD, 0xF5, 
         0x1F, 0x00, 0x00, 0x00, 0xFF, 0xFF };
-    httpd_send_block((const char*)http_response_data,sizeof(http_response_data), resp_arg);
-    free(resp_arg);
+    httpd_send_block((const char*)http_response_data,sizeof(http_response_data), context);
+    free(context);
 }
-void httpd_content_assets_index_C12IFlAD_js(void* resp_arg) {
+void httpd_content_assets_index_C12IFlAD_js(void* context) {
     // HTTP/1.1 200 OK
     // Content-Type: text/javascript
     // Content-Encoding: deflate
@@ -3155,7 +3155,7 @@ void httpd_content_assets_index_C12IFlAD_js(void* resp_arg) {
         0xE8, 0x8F, 0xC8, 0x35, 0xB8, 0xBD, 0x8B, 0x17, 0xD2, 0xAD, 0xE7, 0x59, 0xA6, 0x69, 0x20, 0x9C, 0x5D, 0x46, 0x42, 0x87, 
         0x9D, 0x2B, 0x6B, 0xB4, 0x27, 0x90, 0x0B, 0x82, 0x9A, 0x3E, 0x9D, 0x08, 0xC4, 0x60, 0x5A, 0x6D, 0x44, 0xF4, 0x51, 0x67, 
         0x5F, 0x50, 0x5F, 0x90, 0x06, 0xFE, 0xEB, 0x5F, 0x00, 0x00, 0x00, 0xFF, 0xFF };
-    httpd_send_block((const char*)http_response_data,sizeof(http_response_data), resp_arg);
-    free(resp_arg);
+    httpd_send_block((const char*)http_response_data,sizeof(http_response_data), context);
+    free(context);
 }
 #endif // HTTPD_CONTENT_IMPLEMENTATION

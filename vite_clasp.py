@@ -14,4 +14,4 @@ else:
 
 print("ClASP Suite integration enabled")
 
-env.Execute("dotnet ./build_tools/clasptree.dll ./react-web/dist ./common/include/httpd_content.h --prefix httpd_ --epilogue ./common/include/httpd_epilogue.h --state resp_arg --block httpd_send_block --expr httpd_send_expr --handlers extended")
+env.Execute("dotnet ./build_tools/clasptree.dll ./react-web/dist ./common/include/httpd_content.h --prefix httpd_ --epilogue ./common/include/httpd_epilogue.h --state context --block httpd_send_block --expr httpd_send_expr --handlers extended")

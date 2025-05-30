@@ -6,7 +6,7 @@
 // screen connections
 #ifdef LOCAL_PC
 #define LCD_HRES 800
-#define LCD_VRES 480
+#define LCD_VRES 600
 #define LCD_BIT_DEPTH 16
 #endif
 #ifdef M5STACK_CORE2
