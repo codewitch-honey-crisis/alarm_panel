@@ -127,6 +127,8 @@ The [Makerfabs MaTouch_ESP32-S3 Parallel TFT with Touch 4.3inch](https://www.mak
 
 ![Waveshare ESP32-S3 4.3inch Display Development Board](https://www.waveshare.com/w/upload/8/86/360px-Esp32-s3-touch-lcd-4.3-001.jpg)
 
+![Makerfabs MaTouch_ESP32-S3 Parallel TFT with Touch 4.3inch](https://www.makerfabs.com/media/catalog/product/cache/5082619e83af502b1cf28572733576a0/e/s/esp32-s3-paral_lel-tft_4.3-_6-1000x750.jpg)
+
 ### Supported devices (Slave)
 
 The [Arduino AtMega2560](https://store-usa.arduino.cc/products/arduino-mega-2560-rev3)
