@@ -1,3 +1,5 @@
+// This must be C++ since Microsoft removed their C ABI for Direct2D
+
 #include "display.h"
 #pragma comment(lib, "d2d1.lib")
 #include <memory.h>
