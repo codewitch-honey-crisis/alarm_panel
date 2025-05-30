@@ -7,3 +7,6 @@ data/wifi.txt
 host_win32/.vscode
 host_win32/build
 dependencies.lock
+react-web/dist
+react-web/build
+react-web/.vscode

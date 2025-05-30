@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../common"
+		},
+		{
+			"path": "../react-web"
+		}
+	],
+    "settings": {
+        "files.associations": {
+            "windows.h": "c",
+            "httpd.h": "c"
+        }
+    }
+}
