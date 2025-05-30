@@ -109,7 +109,6 @@
 #else
     #define LCD_PIXEL_CLOCK_HZ (16 * 1000 * 1000)
 #endif
-
 #define LCD_TOUCH_PANEL esp_lcd_touch_new_i2c_gt911
 #define LCD_TOUCH_ADDRESS ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS
 #define LCD_TOUCH_CMD_BITS 16
@@ -119,8 +118,6 @@
 #define LCD_TOUCH_PIN_NUM_RST 38
 #define LCD_TOUCH_HRES 480
 #define LCD_TOUCH_VRES 272
-
-
 #endif
 #ifdef WAVESHARE_ESP32S3_43
 #include "esp_lcd_touch_gt911.h"
