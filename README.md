@@ -99,7 +99,7 @@ The web page communicates to the control firmware using a websocket exposed at `
 
 The first byte is the byte count. The remaining 4 bytes are represented as a big endian `uint32_t` where each bit is one alarm's state. It is then sent to the websocket.
 
-The website may also send a 1 byte message (the payload is ignored) to get the webserver to send back a 5 byte message (packed as above) containing the socket status.
+The website may also send a 1 byte message (the payload is ignored) to get the webserver to send back a 5 byte message (packed as above) containing the alarm status bits.
 
 Furthermore, any alarm changes from control get broadcast to all connected websockets.
 
