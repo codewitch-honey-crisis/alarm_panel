@@ -24,10 +24,12 @@
 #define HTTPD_CONTENT_IMPLEMENTATION
 #include "httpd_content.h"
 
+// swap byte order from little<->big endian
 static uint32_t swap_endian_32(uint32_t number) {
   return ((number & 0xFF) << 24) | ((number & 0xFF00) << 8) | ((number & 0xFF0000) >> 8) | (number >> 24);
 }
 
+// parse the query parameters and apply them to the alarms
 static void parse_url_and_apply(const char* url) {
     const char* query = strchr(url, '?');
     bool has_set = false;
@@ -67,7 +69,7 @@ static void on_ws_connect(const char* path_and_query, void* state) {
     puts("Websocket connected");
 }
 static void on_ws_receive(const ws_srv_frame_t* frame, void* arg, void* state) {
-    if(frame->len==1) {
+    if(frame->len==1) { // request a refresh
         char old_values[alarm_count];
         alarm_lock();
         memcpy(old_values, alarm_values, sizeof(char) * ALARM_COUNT);
@@ -85,7 +87,7 @@ static void on_ws_receive(const ws_srv_frame_t* frame, void* arg, void* state) {
         frame.masked = 0;
         frame.type = WS_SRV_TYPE_BINARY;
         httpd_send_ws_frame(&frame,arg);
-    } else if (frame->len == 5) {
+    } else if (frame->len == 5) { // set the alarms
         ws_srv_unmask_payload(frame, frame->payload);
         if (frame->payload[0] == alarm_count) {
             uint32_t data;
