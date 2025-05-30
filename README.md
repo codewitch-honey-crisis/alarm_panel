@@ -97,7 +97,7 @@ The implementation for the control end of the source code is under `./src-contro
 
 The web page communicates to the control firmware using a websocket exposed at `http://<address>/socket`. Each time an alarm is set or cleared, the alarm values are packed into 5 bytes:
 
-The first byte is the byte count. The remaining 4 bytes are represented as a big endian `uint32_t` where each bit is one alarm's state. It is then sent to the websocket.
+The first byte is the alarm count. The remaining 4 bytes are represented as a big endian `uint32_t` where each bit is one alarm's state. It is then sent to the websocket.
 
 The website may also send a 1 byte message (the payload is ignored) to get the webserver to send back a 5 byte message (packed as above) containing the alarm status bits.
 
