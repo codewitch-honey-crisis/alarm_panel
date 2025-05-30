@@ -91,4 +91,23 @@ The implementation for the control end of the source code is under `./src-contro
    - `./react-web/dist` contains the end generated React content (produced by Vite) that will end up being embedded with ClASP-Tree.
    
 
+## Implementation errata
+
+### Websocket and website interaction
+
+The web page communicates to the control firmware using a websocket exposed at `http://<address>/socket`. Each time an alarm is set or cleared, the alarm values are packed into 5 bytes:
+
+The first byte is the byte count. The remaining 4 bytes are represented as a big endian `uint32_t` where each bit is one alarm's state. It is then sent to the websocket.
+
+The website may also send a 1 byte message (the payload is ignored) to get the webserver to send back a 5 byte message (packed as above) containing the socket status.
+
+Furthermore, any alarm changes from control get broadcast to all connected websockets.
+
+### Win32 Host
+
+The Win32 host uses DirectX/Direct2D to present a draw surface suitable for a library like htcw_uix (or LVGL) to draw to the display. It is intended to be compiled with Microsoft's C++ compiler so you should have Visual Studio 2022 installed. The app also exposes an http server and websocket endpoint at `localhost:8080` for testing the code. In order to use this host, your code must not use platform specific or compiler specific constructs. If you wish to expose platform specific functionality, do so by making a common C ABI for it, putting the header in `./common/include` and then implement it separately for each of the two projects (ESP32 control vs Win32 host)
+
+### Slave logic
+
+The slave code is simple, and handles the basic fire alarm operation. When it receives a signal indicating a thrown switch it communicates that to control. Control then sends a throw command back to the slave in order to trip the alarm. Unthrowing the switch will NOT turn the alarm off. First the switch must be unthrown, and then the alarm must be turned off at the control. All this logic is effectively handled by the slave.
 
