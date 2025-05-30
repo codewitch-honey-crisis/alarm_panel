@@ -60,8 +60,9 @@ static void parse_url_and_apply(const char* url) {
         for (size_t i = 0; i < alarm_count; ++i) {
             alarm_values[i] = req_values[i];
         }
+        ui_update_switches(false);
         alarm_unlock();
-        ui_update_switches(true);
+        
     }
 }
 
@@ -99,8 +100,8 @@ static void on_ws_receive(const ws_srv_frame_t* frame, void* arg, void* state) {
             for (int i = 0; i < alarm_count; ++i) {
                 alarm_enable(i, new_values[i]);
             }
+            ui_update_switches(false);
             alarm_unlock();
-            ui_update_switches(true);
         } else {
             puts("alarm count doesn't match");
         }
