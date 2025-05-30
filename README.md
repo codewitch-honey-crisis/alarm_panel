@@ -18,6 +18,8 @@ it demonstrates
 
 Prerequisites:
 
+NOTE: Currently this build environment requires Windows.
+
 You need Node.js - specifically Node Version Manager (nvm) and Node Package Manager (npm) installed under the PlatformIO CLI command prompt
 
 Installation and build steps:
