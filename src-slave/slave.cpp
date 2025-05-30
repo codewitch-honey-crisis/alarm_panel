@@ -2,15 +2,18 @@
 
 #include "config.h"
 
+#define SERIAL_RX 16
+#define SERIAL_TX 17
+
 static bool tripped[alarm_count];
 static bool last[alarm_count];
 void setup() {
     memset(tripped, 0, sizeof(bool) * alarm_count);
 #ifdef ESP_PLATFORM
-    Serial2.begin(serial_baud_rate, SERIAL_8N1, slave_serial_pins.rx,
-                  slave_serial_pins.tx);
+    Serial2.begin(ALARM_BAUD, SERIAL_8N1, SERIAL_RX,
+                  SERIAL_RX);
 #else
-    Serial2.begin(serial_baud_rate);
+    Serial2.begin(ALARM_BAUD);
 #endif
     for (size_t i = 0; i < alarm_count; ++i) {
         pinMode(alarm_switch_pins[i], INPUT);
