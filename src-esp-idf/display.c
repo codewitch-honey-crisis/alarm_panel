@@ -215,10 +215,12 @@ static void lcd_on_flush_complete() {
     display_flush_complete();
 }
 #else
+#ifndef LCD_PIN_NUM_HSYNC
 static bool display_flush_cb(esp_lcd_panel_io_handle_t lcd_io, esp_lcd_panel_io_event_data_t* edata, void* user_ctx) {
     display_flush_complete();
     return true;
 }
+#endif
 #endif
 
 // initialize the screen 
@@ -227,8 +229,8 @@ int display_init() {
     esp_lcd_panel_io_handle_t io_handle = NULL;
 #ifndef LCD_PIN_NUM_HSYNC
     esp_lcd_panel_io_spi_config_t io_config;
-#endif
     esp_lcd_panel_dev_config_t lcd_config;
+#endif
 #endif
     esp_lcd_panel_io_i2c_config_t tio_cfg;
     esp_lcd_panel_io_handle_t tio_handle;
@@ -493,6 +495,18 @@ int display_touch_read(uint16_t* out_x_array,uint16_t* out_y_array, uint16_t* ou
     uint8_t tmp;
     if(esp_lcd_touch_get_coordinates(touch_handle,out_x_array,out_y_array,out_strength_array,&tmp,count)) {
         *in_out_touch_count=count;
+        static const uint16_t lcd_width = LCD_WIDTH;
+        static const uint16_t lcd_height = LCD_HEIGHT;
+        static const uint16_t lcd_touch_width = LCD_TOUCH_WIDTH;
+        static const uint16_t lcd_touch_height = LCD_TOUCH_HEIGHT;
+        if(lcd_width!=lcd_touch_width||lcd_height!=lcd_touch_height) {
+            const float xfactor = (float)lcd_width/(float)lcd_touch_width;
+            const float yfactor = (float)lcd_height/(float)lcd_touch_height;
+            for(int i = 0;i<count;++i) {
+                out_x_array[i]*=xfactor;
+                out_y_array[i]*=yfactor;
+            }
+        }
         return 0;
     }
     return 0;

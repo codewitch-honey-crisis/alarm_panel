@@ -17,6 +17,12 @@
 #define SERIAL_TX 5
 #define SERIAL_PORT UART_NUM_1
 #endif
+#ifdef MATOUCH_PARALLEL_43
+#define SERIAL_RX 19
+#define SERIAL_TX 20
+#define SERIAL_PORT UART_NUM_1
+#endif
+
 /// @brief A serial event
 typedef struct {
     /// @brief The command

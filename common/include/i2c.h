@@ -17,7 +17,12 @@
 #define I2C_SCL 9
 #define I2C_SDA 8
 #define I2C_SPEED 400*1000
-
+#endif
+#ifdef MATOUCH_PARALLEL_43
+#define I2C_PORT 0
+#define I2C_SCL 18
+#define I2C_SDA 17
+#define I2C_SPEED 400*1000
 #endif
 #endif // I2C_H
 #ifdef __cplusplus
