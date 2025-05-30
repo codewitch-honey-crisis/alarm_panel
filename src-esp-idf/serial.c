@@ -39,6 +39,9 @@ int serial_get_event(serial_event_t* out_event) {
     }
     return -1;
 }
-void serial_send_event(const serial_event_t *event) {
-    uart_write_bytes(SERIAL_PORT, (const uint8_t*)event, sizeof(serial_event_t));
+int serial_send_event(const serial_event_t *event) {
+    if(ESP_OK!=uart_write_bytes(SERIAL_PORT, (const uint8_t*)event, sizeof(serial_event_t))) {
+        return -1;
+    }
+    return 0;
 }

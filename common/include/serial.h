@@ -35,7 +35,8 @@ int serial_init(void);
 int serial_get_event(serial_event_t* out_event);
 /// @brief Send an alarm to the serial port
 /// @param i The index of the alarm to throw
-void serial_send_event(const serial_event_t* event);
+/// @return 0 on success, nonzero on error
+int serial_send_event(const serial_event_t* event);
 #ifdef __cplusplus
 }
 #endif

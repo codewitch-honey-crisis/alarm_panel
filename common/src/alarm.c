@@ -17,15 +17,16 @@ int alarm_init() {
     }
     return 0;
 }
-void alarm_enable(size_t alarm, char on) {
-    if (alarm < 0 || alarm >= alarm_count) return;
+int alarm_enable(size_t alarm, char on) {
+    if (alarm < 0 || alarm >= alarm_count) return -1;
     if (alarm_values[alarm] != on) {
         alarm_values[alarm] = on;
         serial_event_t evt;
         evt.cmd = alarm_values[alarm] ? SET_ALARM : CLEAR_ALARM;
         evt.arg = alarm;
-        serial_send_event(&evt);
+        return serial_send_event(&evt);
     }
+    return 0;
 }
 void alarm_lock() {
     if(alarm_sync==NULL) return;
@@ -35,20 +36,20 @@ void alarm_unlock() {
     if(alarm_sync==NULL) return;
     task_mutex_unlock(alarm_sync);
 }
-void alarm_unpack_values(uint32_t data, size_t length, char* out_values) {
-    if (length < 1 || length > 32 || out_values == NULL) {
+void alarm_unpack_values(uint32_t data,char* out_values, size_t out_length) {
+    if (out_length < 1 || out_length > 32 || out_values == NULL) {
         return;
     }
     // unpack the alarm values into the buffer
-    for (int i = 0; i < length; ++i) {
+    for (int i = 0; i < out_length; ++i) {
         out_values[i] = (data & 1);
         data >>= 1;
     }
 }
-uint32_t alarm_pack_values(char* values) {
+uint32_t alarm_pack_values(char* values, size_t length) {
     // pack the alarm values into the buffer
     uint32_t accum = 0;
-    size_t i = alarm_count;
+    size_t i = length;
     while (i) {
         accum <<= 1;
         accum |= (int)values[i - 1];

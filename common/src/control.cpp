@@ -72,7 +72,7 @@ static void on_ws_receive(const ws_srv_frame_t* frame, void* arg, void* state) {
         alarm_lock();
         memcpy(old_values, alarm_values, sizeof(char) * ALARM_COUNT);
         alarm_unlock();
-        uint32_t vals = alarm_pack_values(old_values);
+        uint32_t vals = alarm_pack_values(old_values,alarm_count);
         uint8_t buf[5];
         buf[0] = alarm_count;
         vals = swap_endian_32(vals);
@@ -92,7 +92,7 @@ static void on_ws_receive(const ws_srv_frame_t* frame, void* arg, void* state) {
             memcpy(&data, frame->payload + 1, sizeof(uint32_t));
             data = swap_endian_32(data);
             char new_values[alarm_count];
-            alarm_unpack_values(data, alarm_count, new_values);
+            alarm_unpack_values(data, new_values, alarm_count);
             alarm_lock();
             for (int i = 0; i < alarm_count; ++i) {
                 alarm_enable(i, new_values[i]);
@@ -136,7 +136,7 @@ static void alarms_changed_socket_task(void* arg) {
         if (0 != memcmp(alarm_values, old_values, sizeof(char) * ALARM_COUNT)) {
             memcpy(old_values, alarm_values, sizeof(char) * ALARM_COUNT);
             alarm_unlock();
-            uint32_t vals = alarm_pack_values(old_values);
+            uint32_t vals = alarm_pack_values(old_values,alarm_count);
             uint8_t buf[5];
             buf[0] = alarm_count;
             vals = swap_endian_32(vals);
