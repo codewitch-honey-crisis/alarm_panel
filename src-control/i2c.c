@@ -10,7 +10,7 @@ int i2c_master_init(void)
     i2c_mst_config.scl_io_num = (gpio_num_t)I2C_SCL;
     i2c_mst_config.sda_io_num = (gpio_num_t)I2C_SDA;
     i2c_mst_config.glitch_ignore_cnt = 7;
-    i2c_mst_config.flags.enable_internal_pullup = true;
+    i2c_mst_config.flags.enable_internal_pullup = 1;
     i2c_master_bus_handle_t bus;
     if(ESP_OK!=i2c_new_master_bus(&i2c_mst_config, &bus)) {
         return -1;
