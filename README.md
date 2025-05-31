@@ -1,6 +1,6 @@
 # alarm_panel
 
-Alarm Panel is a fire alarm system control panel and fire alarm driver simulator. It was made to simulate a commercial fire alarm system, for a friend's kid.
+Alarm Panel is a fire alarm system control panel and fire alarm driver simulator. It was made to simulate a fire alarm system, for a friend's kid.
 
 it demonstrates
 
