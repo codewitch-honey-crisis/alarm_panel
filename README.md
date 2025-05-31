@@ -1,6 +1,6 @@
 # alarm_panel
 
-Alarm Panel is a fire alarm system control panel and fire alarm driver for a ESP32 based M5 Stack Core2 and a slave Arduino AtMega 2560 or ESP32 device. It was made to simulate a commercial fire alarm system, for a friend's kid.
+Alarm Panel is a fire alarm system control panel and fire alarm driver simulator. It was made to simulate a commercial fire alarm system, for a friend's kid.
 
 it demonstrates
 
