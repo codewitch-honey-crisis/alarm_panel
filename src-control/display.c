@@ -222,7 +222,39 @@ static bool display_flush_cb(esp_lcd_panel_io_handle_t lcd_io, esp_lcd_panel_io_
 }
 #endif
 #endif
-
+#ifdef WAVESHARE_ESP32S3_43
+static void display_touch_pre_reset(void)
+{
+    i2c_master_bus_handle_t bus;
+    ESP_ERROR_CHECK(i2c_master_get_bus_handle((i2c_port_num_t)I2C_PORT,&bus));
+    i2c_master_dev_handle_t i2c=NULL;
+    i2c_device_config_t dev_cfg;
+    memset(&dev_cfg,0,sizeof(dev_cfg));
+    dev_cfg.scl_speed_hz = 200*1000;
+    dev_cfg.device_address = 0x24;
+    dev_cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus, &dev_cfg,&i2c));
+    uint8_t write_buf = 0x01;
+    ESP_ERROR_CHECK(i2c_master_transmit(i2c,&write_buf,1,1000));
+    ESP_ERROR_CHECK(i2c_master_bus_rm_device(i2c));
+    dev_cfg.device_address = 0x38;
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus, &dev_cfg,&i2c));
+    // Reset the touch screen. It is recommended to reset the touch screen before using it.
+    write_buf = 0x2C;
+    ESP_ERROR_CHECK(i2c_master_transmit(i2c,&write_buf,1,1000 ));
+    esp_rom_delay_us(100 * 1000);
+    gpio_set_level((gpio_num_t)4, 0);
+    esp_rom_delay_us(100 * 1000);
+    write_buf = 0x2E;
+    ESP_ERROR_CHECK(i2c_master_transmit(i2c,&write_buf,1,1000));
+    esp_rom_delay_us(200 * 1000);
+    ESP_ERROR_CHECK(i2c_master_bus_rm_device(i2c));
+}
+#else
+static void display_touch_pre_reset()
+{
+}
+#endif
 // initialize the screen 
 int display_init() {
 #ifndef LCD_SPI_MASTER
@@ -407,6 +439,7 @@ int display_init() {
 #if defined(LCD_BL) && LCD_BL > 1
     gpio_set_level((gpio_num_t)LCD_BL, bl_on);
 #endif
+    display_touch_pre_reset();
     memset(&tio_cfg,0,sizeof(tio_cfg));
     tio_cfg.dev_addr = LCD_TOUCH_ADDRESS;
     tio_cfg.control_phase_bytes = LCD_TOUCH_CONTROL_PHASE_BYTES;

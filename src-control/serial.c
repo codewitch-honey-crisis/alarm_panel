@@ -9,6 +9,7 @@
 #include "driver/uart.h"
 
 int serial_init(void) {
+#ifdef SERIAL_PORT
     uart_config_t uart_config;
     memset(&uart_config, 0, sizeof(uart_config));
     uart_config.baud_rate = ALARM_BAUD;
@@ -27,9 +28,11 @@ int serial_init(void) {
         uart_driver_delete(SERIAL_PORT);
         return -1;
     }
+#endif
     return 0;
 }
 int serial_get_event(serial_event_t* out_event) {
+#ifdef SERIAL_PORT
     uint8_t payload[2];
     if (out_event && sizeof(payload) == uart_read_bytes(SERIAL_PORT, &payload,
                                                         sizeof(payload), 0)) {
@@ -37,11 +40,14 @@ int serial_get_event(serial_event_t* out_event) {
         out_event->arg = payload[1];
         return 0;
     }
+#endif
     return -1;
 }
 int serial_send_event(const serial_event_t *event) {
+#ifdef SERIAL_PORT
     if(ESP_OK!=uart_write_bytes(SERIAL_PORT, (const uint8_t*)event, sizeof(serial_event_t))) {
         return -1;
     }
+#endif
     return 0;
 }
