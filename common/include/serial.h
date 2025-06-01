@@ -34,8 +34,8 @@ int serial_init(void);
 /// @param out_event The event
 /// @return zero if data was retrieved, otherwise non-zero
 int serial_get_event(serial_event_t* out_event);
-/// @brief Send an alarm to the serial port
-/// @param i The index of the alarm to throw
+/// @brief Send an event to the serial port
+/// @param event The event to send
 /// @return 0 on success, nonzero on error
 int serial_send_event(const serial_event_t* event);
 #ifdef __cplusplus
