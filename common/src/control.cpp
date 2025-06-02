@@ -21,6 +21,7 @@
 #include "spi.h"
 #include "task.h"
 #include "ui.h"
+
 #define HTTPD_CONTENT_IMPLEMENTATION
 #include "httpd_content.h"
 
