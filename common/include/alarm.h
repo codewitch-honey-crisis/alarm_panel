@@ -10,16 +10,16 @@ extern "C" {
 extern char alarm_values[];
 /// @brief Initialize the alarms
 /// @return 0 if success, non-zero on error
-int alarm_init();
+int alarm_init(void);
 /// @brief Turn an alarm off or on
 /// @param alarm the alarm
 /// @param on enable or disable the alarm
 /// @return 0 on success, non-zero on error
 int alarm_enable(size_t alarm, char on);
 /// @brief Locks the alarm data with a mutex
-void alarm_lock();
+void alarm_lock(void);
 /// @brief Unlocks the alarm data with a mutex
-void alarm_unlock();
+void alarm_unlock(void);
 /// @brief Unpacks alarm values into an array
 /// @param data Up to 32 alarms, packed as bits
 /// @param out_values The array that holds the result
