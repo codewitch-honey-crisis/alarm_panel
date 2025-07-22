@@ -1,4 +1,4 @@
-# Visual FA Python port - work in progress
+# Visual FA Python port
 # copyright (c) 2025 by honey the codewitch
 # MIT license
 from __future__ import annotations
